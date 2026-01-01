@@ -8,9 +8,15 @@ import { useAuth } from '../context/AuthContext';
 const UserDashboard = () => {
     const { user } = useAuth();
     const navigate = useNavigate();
-    const [stats, setStats] = useState({ totalOrders: 0, cartItems: 0, cartTotal: 0 });
-    const [recentOrders, setRecentOrders] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [stats, setStats] = useState(() => {
+        const cached = localStorage.getItem('user_stats');
+        return cached ? JSON.parse(cached) : { totalOrders: 0, cartItems: 0, cartTotal: 0 };
+    });
+    const [recentOrders, setRecentOrders] = useState(() => {
+        const cached = localStorage.getItem('user_recent_orders');
+        return cached ? JSON.parse(cached) : [];
+    });
+    const [loading, setLoading] = useState(recentOrders.length === 0 && stats.totalOrders === 0);
 
     useEffect(() => {
         if (!user || user.role !== 'user') {
@@ -27,12 +33,18 @@ const UserDashboard = () => {
                 api.get('/cart')
             ]);
             const cartTotal = cartRes.data.reduce((acc, item) => acc + (item.product.price * item.quantity), 0);
-            setStats({
+            const newStats = {
                 totalOrders: ordersRes.data.length,
                 cartItems: cartRes.data.length,
                 cartTotal: cartTotal
-            });
-            setRecentOrders(ordersRes.data.slice(0, 3));
+            };
+            const newRecentOrders = ordersRes.data.slice(0, 3);
+
+            setStats(newStats);
+            setRecentOrders(newRecentOrders);
+
+            localStorage.setItem('user_stats', JSON.stringify(newStats));
+            localStorage.setItem('user_recent_orders', JSON.stringify(newRecentOrders));
         } catch (err) {
             console.error("Error fetching dashboard data:", err);
         } finally {

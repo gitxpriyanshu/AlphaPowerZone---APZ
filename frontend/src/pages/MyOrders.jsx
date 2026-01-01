@@ -6,8 +6,11 @@ import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
 const MyOrders = () => {
-    const [orders, setOrders] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [orders, setOrders] = useState(() => {
+        const cached = localStorage.getItem('user_orders');
+        return cached ? JSON.parse(cached) : [];
+    });
+    const [loading, setLoading] = useState(orders.length === 0);
     const { user } = useAuth();
     const navigate = useNavigate();
 
@@ -23,6 +26,7 @@ const MyOrders = () => {
         try {
             const res = await api.get('/orders');
             setOrders(res.data);
+            localStorage.setItem('user_orders', JSON.stringify(res.data));
         } catch (err) {
             console.error("Failed to fetch orders", err);
         } finally {

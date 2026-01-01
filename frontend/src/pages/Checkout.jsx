@@ -1,10 +1,18 @@
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+import api from '../api/axios';
+import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 
 const Checkout = () => {
     const { showToast } = useToast();
-    const [cartItems, setCartItems] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [cartItems, setCartItems] = useState(() => {
+        const cached = localStorage.getItem('cached_cart');
+        return cached ? JSON.parse(cached) : [];
+    });
+    const [loading, setLoading] = useState(cartItems.length === 0);
     const [fullName, setFullName] = useState('');
     const [addressLine1, setAddressLine1] = useState('');
     const [addressLine2, setAddressLine2] = useState('');
@@ -17,6 +25,23 @@ const Checkout = () => {
     const { user } = useAuth();
     const navigate = useNavigate();
 
+    const fetchCart = useCallback(async () => {
+        try {
+            const res = await api.get('/cart');
+            if (res.data.length === 0 && !localStorage.getItem('cached_cart')) {
+                showToast('Your cart is empty!', 'info');
+                navigate('/cart');
+                return;
+            }
+            setCartItems(res.data);
+            localStorage.setItem('cached_cart', JSON.stringify(res.data));
+        } catch (err) {
+            console.error("Failed to fetch cart", err);
+        } finally {
+            setLoading(false);
+        }
+    }, [navigate, showToast]);
+
     useEffect(() => {
         if (!user || user.role !== 'user') {
             navigate('/login');
@@ -24,27 +49,11 @@ const Checkout = () => {
         }
         setFullName(user.name || '');
         fetchCart();
-    }, [user, navigate]);
+    }, [user, navigate, fetchCart]);
 
-    const fetchCart = async () => {
-        try {
-            const res = await api.get('/cart');
-            if (res.data.length === 0) {
-                showToast('Your cart is empty!', 'info');
-                navigate('/cart');
-                return;
-            }
-            setCartItems(res.data);
-        } catch (err) {
-            console.error("Failed to fetch cart", err);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const calculateTotal = () => {
+    const calculateTotal = useMemo(() => {
         return cartItems.reduce((acc, item) => acc + (item.product.price * item.quantity), 0);
-    };
+    }, [cartItems]);
 
     const handleConfirmOrder = async () => {
         if (!fullName.trim()) {
@@ -237,7 +246,7 @@ const Checkout = () => {
                             <div className="space-y-3 mb-6">
                                 <div className="flex justify-between text-gray-600">
                                     <span>Subtotal ({cartItems.length} items)</span>
-                                    <span>₹{calculateTotal().toFixed(2)}</span>
+                                    <span>₹{calculateTotal.toFixed(2)}</span>
                                 </div>
                                 <div className="flex justify-between text-gray-600">
                                     <span>Delivery Charges</span>
@@ -245,7 +254,7 @@ const Checkout = () => {
                                 </div>
                                 <div className="border-t border-gray-200 pt-3 flex justify-between text-lg font-bold">
                                     <span>Total Amount</span>
-                                    <span className="text-primary">₹{calculateTotal().toFixed(2)}</span>
+                                    <span className="text-primary">₹{calculateTotal.toFixed(2)}</span>
                                 </div>
                             </div>
 
@@ -293,7 +302,7 @@ const Checkout = () => {
                         </p>
                         <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
                             <p className="text-sm text-green-800 font-semibold">Cash on Delivery</p>
-                            <p className="text-xs text-green-600 mt-1">Pay ₹{calculateTotal().toFixed(2)} when you receive your order</p>
+                            <p className="text-xs text-green-600 mt-1">Pay ₹{calculateTotal.toFixed(2)} when you receive your order</p>
                         </div>
                         <button
                             onClick={() => navigate('/orders')}
