@@ -1,11 +1,8 @@
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import api from '../api/axios';
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 
 const Checkout = () => {
+    const { showToast } = useToast();
     const [cartItems, setCartItems] = useState([]);
     const [loading, setLoading] = useState(true);
     const [fullName, setFullName] = useState('');
@@ -33,7 +30,7 @@ const Checkout = () => {
         try {
             const res = await api.get('/cart');
             if (res.data.length === 0) {
-                alert('Your cart is empty!');
+                showToast('Your cart is empty!', 'info');
                 navigate('/cart');
                 return;
             }
@@ -51,19 +48,19 @@ const Checkout = () => {
 
     const handleConfirmOrder = async () => {
         if (!fullName.trim()) {
-            alert('Please enter your full name');
+            showToast('Please enter your full name', 'error');
             return;
         }
         if (!addressLine1.trim() || !city.trim() || !state.trim() || !pincode.trim()) {
-            alert('Please fill all address fields');
+            showToast('Please fill all address fields', 'error');
             return;
         }
         if (!phone.trim()) {
-            alert('Please enter phone number');
+            showToast('Please enter phone number', 'error');
             return;
         }
         if (pincode.length !== 6) {
-            alert('Pincode must be 6 digits');
+            showToast('Pincode must be 6 digits', 'error');
             return;
         }
 
@@ -75,9 +72,10 @@ const Checkout = () => {
                 deliveryAddress: fullAddress,
                 phone
             });
+            showToast('Order placed successfully!', 'success');
             setShowSuccessModal(true);
         } catch (err) {
-            alert('Failed to place order');
+            showToast('Failed to place order', 'error');
         } finally {
             setProcessing(false);
         }

@@ -1,11 +1,8 @@
-import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import api from '../api/axios';
-import { useAuth } from '../context/AuthContext';
-import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import { useToast } from '../context/ToastContext';
 
 const CategoryPage = () => {
+    const { showToast } = useToast();
     const { categoryId } = useParams();
     const navigate = useNavigate();
     const [category, setCategory] = useState(() => {
@@ -46,20 +43,20 @@ const CategoryPage = () => {
 
     const addToCart = async (productId) => {
         if (!user || user.role !== 'user') {
-            alert("Please login as User to add items to cart");
+            showToast("Please login as User to add items to cart", "error");
             return;
         }
         try {
             await api.post('/cart/add', { productId });
-            // Successfully added (non-blocking)
+            showToast("Product added to cart!", "success");
         } catch (err) {
-            alert("Failed to add to cart");
+            showToast("Failed to add to cart", "error");
         }
     };
 
     const buyNow = async (productId) => {
         if (!user || user.role !== 'user') {
-            alert("Please login as User to purchase");
+            showToast("Please login as User to purchase", "info");
             navigate('/login');
             return;
         }
@@ -67,7 +64,7 @@ const CategoryPage = () => {
             await api.post('/cart/add', { productId });
             navigate('/cart');
         } catch (err) {
-            alert("Failed to proceed to checkout");
+            showToast("Failed to proceed to checkout", "error");
         }
     };
 

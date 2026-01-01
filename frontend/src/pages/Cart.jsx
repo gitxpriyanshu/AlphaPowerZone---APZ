@@ -1,15 +1,17 @@
-import { useEffect, useState } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import Navbar from '../components/Navbar';
 import { FiPlus, FiMinus, FiTrash2 } from 'react-icons/fi';
+import { useToast } from '../context/ToastContext';
 
 const Cart = () => {
+    const { showToast } = useToast();
     const [cartItems, setCartItems] = useState([]);
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
 
-    const fetchCart = async () => {
+    const fetchCart = useCallback(async () => {
         try {
             const res = await api.get('/cart');
             setCartItems(res.data);
@@ -18,42 +20,56 @@ const Cart = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
     useEffect(() => {
         fetchCart();
-    }, []);
+    }, [fetchCart]);
 
-    const updateQuantity = async (id, newQuantity) => {
+    const updateQuantity = useCallback(async (id, newQuantity) => {
         if (newQuantity < 1) return;
+
+        // Optimistic update
+        const previousItems = [...cartItems];
+        setCartItems(prev => prev.map(item =>
+            item.id === id ? { ...item, quantity: newQuantity } : item
+        ));
+
         try {
             await api.put(`/cart/${id}`, { quantity: newQuantity });
-            fetchCart();
+            // Sync with server silently
+            const res = await api.get('/cart');
+            setCartItems(res.data);
         } catch (err) {
-            alert('Failed to update quantity');
+            setCartItems(previousItems);
+            showToast('Failed to update quantity', 'error');
         }
-    };
+    }, [cartItems, showToast]);
 
-    const handleRemove = async (id) => {
+    const handleRemove = useCallback(async (id) => {
+        const previousItems = [...cartItems];
+        setCartItems(prev => prev.filter(item => item.id !== id));
+
         try {
             await api.delete(`/cart/remove/${id}`);
-            fetchCart();
+            showToast('Item removed from cart', 'success');
         } catch (err) {
-            alert('Failed to remove item');
+            setCartItems(previousItems);
+            showToast('Failed to remove item', 'error');
         }
-    };
+    }, [cartItems, showToast]);
 
     const handleCheckout = () => {
         if (cartItems.length === 0) {
-            alert('Your cart is empty!');
+            showToast('Your cart is empty!', 'info');
             return;
         }
         navigate('/checkout');
     };
 
-    const calculateTotal = () => {
+    const calculateTotal = useMemo(() => {
         return cartItems.reduce((acc, item) => acc + (item.product.price * item.quantity), 0);
-    };
+    }, [cartItems]);
 
     if (loading) return (
         <div>

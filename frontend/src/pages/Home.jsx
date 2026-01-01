@@ -1,12 +1,14 @@
-import { useEffect, useState } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { FiArrowRight, FiSearch, FiShoppingBag, FiStar, FiTrendingUp, FiPackage, FiGrid } from 'react-icons/fi';
+import { useToast } from '../context/ToastContext';
 
 const Home = () => {
+    const { showToast } = useToast();
     const { user } = useAuth();
     const navigate = useNavigate();
 
@@ -21,11 +23,7 @@ const Home = () => {
     const [loading, setLoading] = useState(products.length === 0);
     const [searchQuery, setSearchQuery] = useState('');
 
-    useEffect(() => {
-        fetchData();
-    }, []);
-
-    const fetchData = async () => {
+    const fetchData = useCallback(async () => {
         try {
             const [productsRes, categoriesRes] = await Promise.all([
                 api.get('/products'),
@@ -43,9 +41,13 @@ const Home = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
-    const prefetchCategory = async (catId) => {
+    useEffect(() => {
+        fetchData();
+    }, [fetchData]);
+
+    const prefetchCategory = useCallback(async (catId) => {
         const cacheKey = `cached_cat_${catId}`;
         if (localStorage.getItem(cacheKey)) return;
 
@@ -60,29 +62,28 @@ const Home = () => {
         } catch (err) {
             // Silently fail prefetch
         }
-    };
+    }, []);
 
-    const addToCart = async (productId) => {
+    const addToCart = useCallback(async (productId) => {
         if (!user || user.role !== 'user') {
-            alert("Please login as User to add items to cart");
+            showToast("Please login as User to add items to cart", "error");
             return;
         }
 
-        // Optimistic UI could be a toast or subtle icon change
-        // For now, let's just make the server call and use a non-blocking alert/toast if available
-        // Since we don't have a toast lib, let's just ensure it's fast
         try {
             await api.post('/cart/add', { productId });
-            // alert("Added to cart!"); // Blocking alert breaks "instant" feel
-            // We could add a local "adding" state per product
+            showToast("Product added to cart!", "success");
         } catch (err) {
-            alert("Failed to add to cart");
+            showToast("Failed to add to cart", "error");
         }
-    };
+    }, [user, showToast]);
 
-    const filteredProducts = products.filter(p =>
-        p.name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    // useMemo for heavy filter operations
+    const filteredProducts = useMemo(() => {
+        return products.filter(p =>
+            p.name.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+    }, [products, searchQuery]);
 
     return (
         <div className="min-h-screen bg-[#FDFDFF] selection:bg-primary/30 font-sans">

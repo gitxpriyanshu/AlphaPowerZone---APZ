@@ -1,12 +1,14 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
+import { useAuth } from '../context/AuthContext';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-import { useAuth } from '../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
 import { FiPackage, FiGrid, FiPlus, FiEdit2, FiTrash2, FiImage } from 'react-icons/fi';
+import { useToast } from '../context/ToastContext';
 
 const OwnerDashboard = () => {
+    const { showToast } = useToast();
     const { user } = useAuth();
     const navigate = useNavigate();
     const [view, setView] = useState('overview');
@@ -55,15 +57,7 @@ const OwnerDashboard = () => {
         }
     };
 
-    useEffect(() => {
-        if (!user || user.role !== 'owner') {
-            navigate('/login');
-            return;
-        }
-        fetchData();
-    }, [user, navigate]);
-
-    const fetchData = async () => {
+    const fetchData = useCallback(async () => {
         try {
             const [productsRes, categoriesRes] = await Promise.all([
                 api.get('/products'),
@@ -78,9 +72,17 @@ const OwnerDashboard = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
-    const handleProductSubmit = async (e) => {
+    useEffect(() => {
+        if (!user || user.role !== 'owner') {
+            navigate('/login');
+            return;
+        }
+        fetchData();
+    }, [user, navigate, fetchData]);
+
+    const handleProductSubmit = useCallback(async (e) => {
         e.preventDefault();
         const formData = new FormData();
         Object.keys(productForm).forEach(key => formData.append(key, productForm[key]));
@@ -89,10 +91,10 @@ const OwnerDashboard = () => {
         try {
             if (editingProduct) {
                 await api.put(`/products/${editingProduct.id}`, formData);
-                alert('Product updated successfully!');
+                showToast('Product updated successfully!', 'success');
             } else {
                 await api.post('/products', formData);
-                alert('Product created successfully!');
+                showToast('Product created successfully!', 'success');
             }
             setProductForm({ name: '', description: '', price: '', categoryId: '' });
             setProductImage(null);
@@ -100,11 +102,11 @@ const OwnerDashboard = () => {
             setEditingProduct(null);
             fetchData();
         } catch (err) {
-            alert('Failed to save product');
+            showToast('Failed to save product', 'error');
         }
-    };
+    }, [editingProduct, productForm, productImage, fetchData, showToast]);
 
-    const handleCategorySubmit = async (e) => {
+    const handleCategorySubmit = useCallback(async (e) => {
         e.preventDefault();
         const formData = new FormData();
         formData.append('name', categoryForm.name);
@@ -113,10 +115,10 @@ const OwnerDashboard = () => {
         try {
             if (editingCategory) {
                 await api.put(`/categories/${editingCategory.id}`, formData);
-                alert('Category updated successfully!');
+                showToast('Category updated successfully!', 'success');
             } else {
                 await api.post('/categories', formData);
-                alert('Category created successfully!');
+                showToast('Category created successfully!', 'success');
             }
             setCategoryForm({ name: '' });
             setCategoryImage(null);
@@ -124,29 +126,27 @@ const OwnerDashboard = () => {
             setEditingCategory(null);
             fetchData();
         } catch (err) {
-            alert('Failed to save category');
+            showToast('Failed to save category', 'error');
         }
-    };
+    }, [categoryForm, categoryImage, editingCategory, fetchData, showToast]);
 
     const deleteProduct = async (id) => {
-        if (!confirm('Are you sure you want to delete this product?')) return;
         try {
             await api.delete(`/products/${id}`);
-            alert('Product deleted successfully!');
+            showToast('Product deleted successfully!', 'success');
             fetchData();
         } catch (err) {
-            alert('Failed to delete product');
+            showToast('Failed to delete product', 'error');
         }
     };
 
     const deleteCategory = async (id) => {
-        if (!confirm('Are you sure you want to delete this category?')) return;
         try {
             await api.delete(`/categories/${id}`);
-            alert('Category deleted successfully!');
+            showToast('Category deleted successfully!', 'success');
             fetchData();
         } catch (err) {
-            alert('Failed to delete category');
+            showToast('Failed to delete category', 'error');
         }
     };
 
@@ -193,7 +193,7 @@ const OwnerDashboard = () => {
                                 <div className="flex items-center justify-between">
                                     <div>
                                         <p className="text-sm text-gray-600 mb-1">Total Products</p>
-                                        <p className="text-4xl font-bold text-gray-900">{products.length}</p>
+                                        <p className="text-4xl font-bold text-gray-900">{stats.totalProducts}</p>
                                     </div>
                                     <div className="bg-primary/10 p-4 rounded-full">
                                         <FiPackage className="w-8 h-8 text-primary" />
@@ -204,7 +204,7 @@ const OwnerDashboard = () => {
                                 <div className="flex items-center justify-between">
                                     <div>
                                         <p className="text-sm text-gray-600 mb-1">Categories</p>
-                                        <p className="text-4xl font-bold text-gray-900">{categories.length}</p>
+                                        <p className="text-4xl font-bold text-gray-900">{stats.totalCategories}</p>
                                     </div>
                                     <div className="bg-purple-100 p-4 rounded-full">
                                         <FiGrid className="w-8 h-8 text-purple-600" />
@@ -215,7 +215,7 @@ const OwnerDashboard = () => {
                                 <div className="flex items-center justify-between">
                                     <div>
                                         <p className="text-sm text-gray-600 mb-1">Total Value</p>
-                                        <p className="text-4xl font-bold text-gray-900">₹{products.reduce((acc, p) => acc + parseFloat(p.price), 0).toFixed(0)}</p>
+                                        <p className="text-4xl font-bold text-gray-900">₹{stats.totalValue.toFixed(0)}</p>
                                     </div>
                                     <div className="bg-green-100 p-4 rounded-full">
                                         <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -228,7 +228,7 @@ const OwnerDashboard = () => {
                                 <div className="flex items-center justify-between">
                                     <div>
                                         <p className="text-sm text-gray-600 mb-1">Avg. Price</p>
-                                        <p className="text-4xl font-bold text-gray-900">₹{products.length > 0 ? (products.reduce((acc, p) => acc + parseFloat(p.price), 0) / products.length).toFixed(0) : 0}</p>
+                                        <p className="text-4xl font-bold text-gray-900">₹{stats.avgPrice.toFixed(0)}</p>
                                     </div>
                                     <div className="bg-orange-100 p-4 rounded-full">
                                         <svg className="w-8 h-8 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">

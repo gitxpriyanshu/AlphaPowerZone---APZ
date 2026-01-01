@@ -1,9 +1,9 @@
-import { useState } from 'react';
-import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
+import { useToast } from '../context/ToastContext';
 
 const Login = () => {
+    const { showToast } = useToast();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [isOwner, setIsOwner] = useState(false);
@@ -19,6 +19,7 @@ const Login = () => {
             : await loginUser(email, password);
 
         if (res.success) {
+            showToast('Login successful!', 'success');
             navigate(isOwner ? '/dashboard' : '/home');
         } else {
             setError(res.message);

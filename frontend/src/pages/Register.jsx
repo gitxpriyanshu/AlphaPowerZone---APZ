@@ -1,9 +1,7 @@
-import { useState } from 'react';
-import api from '../api/axios';
-import { useNavigate } from 'react-router-dom';
-import Navbar from '../components/Navbar';
+import { useToast } from '../context/ToastContext';
 
 const Register = () => {
+    const { showToast } = useToast();
     const [formData, setFormData] = useState({
         name: '', email: '', password: '', age: '', mobile: '', address: ''
     });
@@ -25,7 +23,7 @@ const Register = () => {
 
         try {
             await api.post(endpoint, payload);
-            alert('Registration successful! Please login.');
+            showToast('Registration successful! Please login.', 'success');
             navigate('/login');
         } catch (err) {
             setError(err.response?.data?.message || 'Registration failed');
