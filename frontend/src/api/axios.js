@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-    baseURL: 'http://localhost:3006/api',
+    baseURL: 'https://alphapowerzone-apz.onrender.com/api',
     withCredentials: true, // Important for cookies
 });
 
