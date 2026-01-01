@@ -89,7 +89,7 @@ const signin = async (req, res) => {
   try {
     const existingUser = await prisma.user.findFirst({
       where: {
-        OR: [email ? { email } : undefined, mobile ? { mobile } : undefined],
+        OR: [email ? { email } : undefined, mobile ? { mobile } : undefined].filter(Boolean),
       },
     });
 
