@@ -10,8 +10,6 @@ const allowedOrigins = [
     'https://alpha-power-zone-apz.vercel.app'
 ];
 
-const app = express()
-
 // MANUAL CORS MIDDLEWARE - Guaranteed to set headers
 app.use((req, res, next) => {
     const origin = req.get('Origin');
