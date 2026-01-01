@@ -24,6 +24,18 @@
   h3 {
     @apply text-xl font-semibold text-gray-800;
   }
+
+  /* Global Cursor Pointer Fixes */
+  button,
+  a,
+  input[type="submit"],
+  input[type="button"],
+  input[type="checkbox"],
+  input[type="radio"],
+  select,
+  [role="button"] {
+    cursor: pointer !important;
+  }
 }
 
 @layer components {
