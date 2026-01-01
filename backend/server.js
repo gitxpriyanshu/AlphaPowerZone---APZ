@@ -44,6 +44,10 @@ app.get('/api/health', (req, res) => {
 });
 
 // Routes
+app.get('/', (req, res) => {
+    res.json({ message: "Alpha Power Zone API is running!", version: "1.0.7-live" });
+});
+
 app.use('/api/users', require('./routes/user.route.js'))
 app.use('/api/owners', require('./routes/owner.route.js'))
 app.use('/api/categories', require('./routes/category.route.js'))
