@@ -16,9 +16,15 @@ const Landing = () => {
         const cached = localStorage.getItem('cached_categories');
         return cached ? JSON.parse(cached) : [];
     });
-    const { user } = useAuth();
+    const { user, loading: authLoading } = useAuth();
     const [loading, setLoading] = useState(products.length === 0);
     const navigate = useNavigate();
+
+    useEffect(() => {
+        if (!authLoading && user) {
+            navigate('/home');
+        }
+    }, [user, authLoading, navigate]);
 
     useEffect(() => {
         fetchData();

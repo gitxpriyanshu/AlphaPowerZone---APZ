@@ -19,7 +19,7 @@ const Login = () => {
             : await loginUser(email, password);
 
         if (res.success) {
-            navigate(isOwner ? '/dashboard' : '/');
+            navigate(isOwner ? '/dashboard' : '/home');
         } else {
             setError(res.message);
         }

@@ -37,12 +37,12 @@ const Navbar = () => {
                         <div className="w-8 h-8 bg-gradient-to-br from-primary to-purple-600 rounded-lg flex items-center justify-center">
                             <span className="text-white font-bold text-lg">A</span>
                         </div>
-                        <Link to="/" className="text-2xl font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
+                        <Link to={user ? "/home" : "/"} className="text-2xl font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
                             APZ
                         </Link>
                     </div>
                     <div className="hidden md:flex space-x-8 items-center">
-                        <Link to="/" className="text-gray-700 hover:text-primary font-medium transition-colors">Home</Link>
+                        <Link to={user ? "/home" : "/"} className="text-gray-700 hover:text-primary font-medium transition-colors">Home</Link>
 
                         {!user ? (
                             <>
