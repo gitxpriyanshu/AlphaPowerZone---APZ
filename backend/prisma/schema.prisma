@@ -1,0 +1,83 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id       Int    @id @default(autoincrement())
+  name     String
+  email    String @unique
+  age      Int
+  mobile   String
+  address  String?
+  password String
+  carts    Cart[]
+  orders   Order[]
+}
+
+model Owner {
+  id       Int       @id @default(autoincrement())
+  name     String
+  email    String    @unique
+  password String
+  products Product[]
+}
+
+model Category {
+  id       Int       @id @default(autoincrement())
+  name     String
+  Image    String
+  products Product[]
+}
+
+model Product {
+  id          Int     @id @default(autoincrement())
+  Image       String
+  name        String
+  description String
+  price       Float
+  rating      Float?
+  review      String?
+  carts       Cart[]
+  
+  categoryId Int
+  ownerId    Int
+  original_items OrderItem[]
+
+  category Category @relation(fields: [categoryId], references: [id])
+  owner    Owner    @relation(fields: [ownerId], references: [id])
+}
+
+model Order {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  total     Float
+  status    String   @default("PENDING") // PENDING, COMPLETED, CANCELLED
+  createdAt DateTime @default(now())
+  items     OrderItem[]
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model OrderItem {
+  id        Int     @id @default(autoincrement())
+  orderId   Int
+  productId Int
+  quantity  Int
+  price     Float
+  order     Order   @relation(fields: [orderId], references: [id])
+  product   Product @relation(fields: [productId], references: [id])
+}
+
+model Cart {
+  id        Int @id @default(autoincrement())
+  userId    Int
+  productId Int
+  quantity  Int @default(1)
+
+  user    User    @relation(fields: [userId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
+}
