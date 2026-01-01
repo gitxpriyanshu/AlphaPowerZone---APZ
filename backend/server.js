@@ -1,7 +1,7 @@
 require("dotenv").config()
 const express = require('express')
 const cookieParser = require('cookie-parser')
-const cors = require('cors')
+
 
 // CORS configuration - Simplified and more compatible
 const allowedOrigins = [
@@ -9,6 +9,8 @@ const allowedOrigins = [
     'http://localhost:5174',
     'https://alpha-power-zone-apz.vercel.app'
 ];
+
+const app = express()
 
 // MANUAL CORS MIDDLEWARE - Guaranteed to set headers
 app.use((req, res, next) => {
@@ -18,6 +20,7 @@ app.use((req, res, next) => {
         'http://localhost:5174',
         'https://alpha-power-zone-apz.vercel.app'
     ];
+
 
     if (allowedOrigins.includes(origin) || !origin) {
         res.header('Access-Control-Allow-Origin', origin || '*');
