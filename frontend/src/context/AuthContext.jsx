@@ -6,21 +6,18 @@ const AuthContext = createContext();
 export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }) => {
-    const [user, setUser] = useState(null); // { role: 'user' | 'owner', data: ... }
-    const [loading, setLoading] = useState(true);
+    const [user, setUser] = useState(() => {
+        const storedUser = localStorage.getItem('user');
+        return storedUser ? JSON.parse(storedUser) : null;
+    });
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
-        // Check if user is logged in (persistence logic would go here, checking cookie or local storage if needed)
-        // For now, since we use HttpOnly cookies, we might need a /me endpoint to verify session on load.
-        // Or we just rely on local state being lost on refresh for this demo unless we implement persistence.
-        // Let's implement basic persistence using localStorage for role/name just for UI state, or add a /me endpoint (better).
-        // Given the task scope, let's stick to simple state. If refresh happens, user logs in again.
-        // Or better, let's use localStorage to persist the "user" object to keep UI sync. 
+        // Just to sync if needed, but primary state is now instant
         const storedUser = localStorage.getItem('user');
         if (storedUser) {
             setUser(JSON.parse(storedUser));
         }
-        setLoading(false);
     }, []);
 
     const loginUser = async (email, password) => {

@@ -3,11 +3,11 @@
     "rewrites": [
         {
             "source": "/api/(.*)",
-            "destination": "/backend/server.js"
+            "destination": "https://alphapowerzone-apz.onrender.com/api/$1"
         },
         {
             "source": "/(.*)",
-            "destination": "/frontend/index.html"
+            "destination": "/index.html"
         }
     ]
 }
