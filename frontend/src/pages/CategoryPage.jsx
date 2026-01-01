@@ -8,9 +8,15 @@ import Footer from '../components/Footer';
 const CategoryPage = () => {
     const { categoryId } = useParams();
     const navigate = useNavigate();
-    const [products, setProducts] = useState([]);
-    const [category, setCategory] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const [category, setCategory] = useState(() => {
+        const cached = localStorage.getItem(`cached_cat_${categoryId}`);
+        return cached ? JSON.parse(cached) : null;
+    });
+    const [products, setProducts] = useState(() => {
+        const cached = localStorage.getItem(`cached_cat_prods_${categoryId}`);
+        return cached ? JSON.parse(cached) : [];
+    });
+    const [loading, setLoading] = useState(!category || products.length === 0);
     const { user } = useAuth();
 
     useEffect(() => {
@@ -23,8 +29,14 @@ const CategoryPage = () => {
                 api.get(`/categories/${categoryId}`),
                 api.get(`/products`)
             ]);
+
             setCategory(categoryRes.data);
-            setProducts(productsRes.data.filter(p => p.categoryId === parseInt(categoryId)));
+            const catProds = productsRes.data.filter(p => p.categoryId === parseInt(categoryId));
+            setProducts(catProds);
+
+            // Cache results
+            localStorage.setItem(`cached_cat_${categoryId}`, JSON.stringify(categoryRes.data));
+            localStorage.setItem(`cached_cat_prods_${categoryId}`, JSON.stringify(catProds));
         } catch (err) {
             console.error("Failed to fetch category data", err);
         } finally {
@@ -39,7 +51,7 @@ const CategoryPage = () => {
         }
         try {
             await api.post('/cart/add', { productId });
-            alert("Added to cart!");
+            // Successfully added (non-blocking)
         } catch (err) {
             alert("Failed to add to cart");
         }
@@ -59,20 +71,17 @@ const CategoryPage = () => {
         }
     };
 
-    if (loading) {
-        return (
-            <div className="min-h-screen bg-gray-50 flex flex-col">
-                <Navbar />
-                <div className="flex-1 flex justify-center items-center">
-                    <div className="text-center">
-                        <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-primary mx-auto mb-4"></div>
-                        <p className="text-gray-600">Loading products...</p>
-                    </div>
+    const Skeletons = () => (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+            {[1, 2, 3, 4].map(i => (
+                <div key={i} className="animate-pulse bg-white rounded-3xl p-4 h-[400px]">
+                    <div className="bg-gray-200 h-64 rounded-2xl mb-4"></div>
+                    <div className="h-6 bg-gray-200 rounded w-3/4 mb-4"></div>
+                    <div className="h-4 bg-gray-200 rounded w-1/2"></div>
                 </div>
-                <Footer />
-            </div>
-        );
-    }
+            ))}
+        </div>
+    );
 
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -121,7 +130,9 @@ const CategoryPage = () => {
 
                 {/* Products Section */}
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-                    {products.length === 0 ? (
+                    {loading && products.length === 0 ? (
+                        <Skeletons />
+                    ) : products.length === 0 ? (
                         <div className="text-center py-20 bg-white rounded-2xl shadow-lg">
                             <div className="w-24 h-24 mx-auto mb-6 bg-gray-100 rounded-full flex items-center justify-center">
                                 <svg className="w-12 h-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">

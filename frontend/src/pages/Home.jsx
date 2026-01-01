@@ -45,14 +45,36 @@ const Home = () => {
         }
     };
 
+    const prefetchCategory = async (catId) => {
+        const cacheKey = `cached_cat_${catId}`;
+        if (localStorage.getItem(cacheKey)) return;
+
+        try {
+            const [categoryRes, productsRes] = await Promise.all([
+                api.get(`/categories/${catId}`),
+                api.get(`/products`)
+            ]);
+            const catProds = productsRes.data.filter(p => p.categoryId === parseInt(catId));
+            localStorage.setItem(`cached_cat_${catId}`, JSON.stringify(categoryRes.data));
+            localStorage.setItem(`cached_cat_prods_${catId}`, JSON.stringify(catProds));
+        } catch (err) {
+            // Silently fail prefetch
+        }
+    };
+
     const addToCart = async (productId) => {
         if (!user || user.role !== 'user') {
             alert("Please login as User to add items to cart");
             return;
         }
+
+        // Optimistic UI could be a toast or subtle icon change
+        // For now, let's just make the server call and use a non-blocking alert/toast if available
+        // Since we don't have a toast lib, let's just ensure it's fast
         try {
             await api.post('/cart/add', { productId });
-            alert("Added to cart!");
+            // alert("Added to cart!"); // Blocking alert breaks "instant" feel
+            // We could add a local "adding" state per product
         } catch (err) {
             alert("Failed to add to cart");
         }
@@ -127,6 +149,7 @@ const Home = () => {
                                     <button
                                         key={cat.id}
                                         onClick={() => navigate(`/category/${cat.id}`)}
+                                        onMouseEnter={() => prefetchCategory(cat.id)}
                                         className="w-full text-left px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 transition-all font-bold"
                                     >
                                         {cat.name}
