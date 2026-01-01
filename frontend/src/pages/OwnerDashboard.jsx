@@ -88,14 +88,10 @@ const OwnerDashboard = () => {
 
         try {
             if (editingProduct) {
-                await api.put(`/products/${editingProduct.id}`, formData, {
-                    headers: { 'Content-Type': 'multipart/form-data' }
-                });
+                await api.put(`/products/${editingProduct.id}`, formData);
                 alert('Product updated successfully!');
             } else {
-                await api.post('/products', formData, {
-                    headers: { 'Content-Type': 'multipart/form-data' }
-                });
+                await api.post('/products', formData);
                 alert('Product created successfully!');
             }
             setProductForm({ name: '', description: '', price: '', categoryId: '' });
@@ -116,14 +112,10 @@ const OwnerDashboard = () => {
 
         try {
             if (editingCategory) {
-                await api.put(`/categories/${editingCategory.id}`, formData, {
-                    headers: { 'Content-Type': 'multipart/form-data' }
-                });
+                await api.put(`/categories/${editingCategory.id}`, formData);
                 alert('Category updated successfully!');
             } else {
-                await api.post('/categories', formData, {
-                    headers: { 'Content-Type': 'multipart/form-data' }
-                });
+                await api.post('/categories', formData);
                 alert('Category created successfully!');
             }
             setCategoryForm({ name: '' });
