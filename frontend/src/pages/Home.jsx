@@ -7,10 +7,17 @@ import Footer from '../components/Footer';
 import { FiArrowRight, FiCheckCircle, FiShield, FiTruck, FiShoppingBag, FiStar } from 'react-icons/fi';
 
 const Home = () => {
-    const [products, setProducts] = useState([]);
-    const [categories, setCategories] = useState([]);
+    // Optimization: Initialize from localStorage for instant feel
+    const [products, setProducts] = useState(() => {
+        const cached = localStorage.getItem('cached_products');
+        return cached ? JSON.parse(cached) : [];
+    });
+    const [categories, setCategories] = useState(() => {
+        const cached = localStorage.getItem('cached_categories');
+        return cached ? JSON.parse(cached) : [];
+    });
     const { user } = useAuth();
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(products.length === 0);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -24,10 +31,14 @@ const Home = () => {
                 api.get('/categories')
             ]);
             setProducts(productsRes.data);
+            // Save to cache
+            localStorage.setItem('cached_products', JSON.stringify(productsRes.data));
+
             const filteredCategories = categoriesRes.data
                 .filter(cat => !cat.name.toLowerCase().includes('default'))
                 .slice(0, 3);
             setCategories(filteredCategories);
+            localStorage.setItem('cached_categories', JSON.stringify(filteredCategories));
         } catch (err) {
             console.error("Failed to fetch data", err);
         } finally {
@@ -161,29 +172,35 @@ const Home = () => {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                        {categories.map((category, index) => (
-                            <div
-                                key={category.id}
-                                onClick={() => navigate(`/category/${category.id}`)}
-                                className={`group cursor-pointer relative h-[500px] rounded-[2.5rem] overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-700 transform hover:-translate-y-2 ${index === 1 ? 'md:-translate-y-6' : ''}`}
-                            >
-                                <img
-                                    src={category.Image}
-                                    alt={category.name}
-                                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000"
-                                />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent"></div>
+                        {loading && categories.length === 0 ? (
+                            [1, 2, 3].map(i => (
+                                <div key={i} className="h-[500px] rounded-[2.5rem] bg-gray-200 animate-pulse"></div>
+                            ))
+                        ) : (
+                            categories.map((category, index) => (
+                                <div
+                                    key={category.id}
+                                    onClick={() => navigate(`/category/${category.id}`)}
+                                    className={`group cursor-pointer relative h-[500px] rounded-[2.5rem] overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-700 transform hover:-translate-y-2 ${index === 1 ? 'md:-translate-y-6' : ''}`}
+                                >
+                                    <img
+                                        src={category.Image}
+                                        alt={category.name}
+                                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000"
+                                    />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent"></div>
 
-                                <div className="absolute bottom-0 left-0 right-0 p-10 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
-                                    <h3 className="text-4xl font-black text-white mb-2 tracking-tight uppercase">{category.name}</h3>
-                                    <div className="flex items-center justify-between mt-6 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-                                        <div className="bg-white/20 backdrop-blur-md px-6 py-2 rounded-full border border-white/30 text-white text-xs font-bold tracking-widest uppercase">
-                                            Shop Now
+                                    <div className="absolute bottom-0 left-0 right-0 p-10 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
+                                        <h3 className="text-4xl font-black text-white mb-2 tracking-tight uppercase">{category.name}</h3>
+                                        <div className="flex items-center justify-between mt-6 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                                            <div className="bg-white/20 backdrop-blur-md px-6 py-2 rounded-full border border-white/30 text-white text-xs font-bold tracking-widest uppercase">
+                                                Shop Now
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        ))}
+                            ))
+                        )}
                     </div>
                 </div>
 
@@ -201,10 +218,15 @@ const Home = () => {
                         </div>
                     </div>
 
-                    {loading ? (
-                        <div className="text-center py-32">
-                            <div className="w-20 h-20 border-4 border-gray-100 border-t-primary rounded-full animate-spin mx-auto mb-8"></div>
-                            <p className="text-gray-400 font-bold tracking-widest uppercase">Initializing catalog</p>
+                    {loading && products.length === 0 ? (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-10">
+                            {[1, 2, 3, 4].map(i => (
+                                <div key={i} className="animate-pulse">
+                                    <div className="bg-gray-200 aspect-[3/4] rounded-3xl mb-4"></div>
+                                    <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                                    <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                                </div>
+                            ))}
                         </div>
                     ) : (
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-10">

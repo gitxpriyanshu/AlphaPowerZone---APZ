@@ -10,9 +10,18 @@ const OwnerDashboard = () => {
     const { user } = useAuth();
     const navigate = useNavigate();
     const [view, setView] = useState('overview');
-    const [products, setProducts] = useState([]);
-    const [categories, setCategories] = useState([]);
-    const [loading, setLoading] = useState(true);
+
+    // Optimization: Initialize from localStorage for instant feel
+    const [products, setProducts] = useState(() => {
+        const cached = localStorage.getItem('owner_products');
+        return cached ? JSON.parse(cached) : [];
+    });
+    const [categories, setCategories] = useState(() => {
+        const cached = localStorage.getItem('owner_categories');
+        return cached ? JSON.parse(cached) : [];
+    });
+
+    const [loading, setLoading] = useState(products.length === 0);
     const [productForm, setProductForm] = useState({ name: '', description: '', price: '', categoryId: '' });
     const [categoryForm, setCategoryForm] = useState({ name: '' });
     const [productImage, setProductImage] = useState(null);
@@ -62,6 +71,8 @@ const OwnerDashboard = () => {
             ]);
             setProducts(productsRes.data);
             setCategories(categoriesRes.data);
+            localStorage.setItem('owner_products', JSON.stringify(productsRes.data));
+            localStorage.setItem('owner_categories', JSON.stringify(categoriesRes.data));
         } catch (err) {
             console.error("Error fetching data:", err);
         } finally {
@@ -166,7 +177,6 @@ const OwnerDashboard = () => {
         setView('categories');
     };
 
-    // Unified view logic (no global spinner)
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col">
             <Navbar />
@@ -380,6 +390,7 @@ const OwnerDashboard = () => {
                                                                 setEditingProduct(null);
                                                                 setProductForm({ name: '', description: '', price: '', categoryId: '' });
                                                                 setProductImage(null);
+                                                                setProductPreview(null);
                                                             }}
                                                             className="w-full btn bg-gray-200 text-gray-700 hover:bg-gray-300"
                                                         >
@@ -489,6 +500,7 @@ const OwnerDashboard = () => {
                                                                 setEditingCategory(null);
                                                                 setCategoryForm({ name: '' });
                                                                 setCategoryImage(null);
+                                                                setCategoryPreview(null);
                                                             }}
                                                             className="w-full btn bg-gray-200 text-gray-700 hover:bg-gray-300"
                                                         >
@@ -536,12 +548,13 @@ const OwnerDashboard = () => {
                                     </div>
                                 </div>
                             )}
-                        </>
+                        </div>
+                    </>
                 )}
-                    </div>
-                <Footer />
             </div>
-            );
+            <Footer />
+        </div>
+    );
 };
 
-            export default OwnerDashboard;
+export default OwnerDashboard;
