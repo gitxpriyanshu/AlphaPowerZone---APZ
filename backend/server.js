@@ -52,8 +52,20 @@ app.use('/api/orders', require('./routes/order.route.js'))
 app.use('/api/products', require('./routes/product.route.js'))
 
 // 404 Handler
-app.use((req, res) => {
-    res.status(404).json({ error: `Not Found: ${req.method} ${req.url}` });
+app.use((req, res, next) => {
+    const error = new Error(`Not Found: ${req.method} ${req.url}`);
+    error.status = 404;
+    next(error);
+});
+
+// Global Error Handler
+app.use((err, req, res, next) => {
+    console.error('GLOBAL ERROR:', err);
+    res.status(err.status || 500).json({
+        message: err.message || 'Internal Server Error',
+        error: process.env.NODE_ENV === 'production' ? err.message : err.stack,
+        details: err.details || err.meta || null
+    });
 });
 
 const PORT = process.env.PORT || 3007
