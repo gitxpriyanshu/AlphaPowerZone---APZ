@@ -4,24 +4,28 @@ const cookieParser = require('cookie-parser')
 const app = express()
 const cors = require('cors')
 
-// CORS configuration - MUST BE FIRST
+// CORS configuration - Simplified and more compatible
+const allowedOrigins = [
+    'http://localhost:5173',
+    'http://localhost:5174',
+    'https://alpha-power-zone-apz.vercel.app'
+];
+
 app.use(cors({
-    origin: (origin, callback) => {
-        const allowedOrigins = [
-            'http://localhost:5173',
-            'http://localhost:5174',
-            'https://alpha-power-zone-apz.vercel.app'
-        ];
-        if (!origin || allowedOrigins.includes(origin)) {
-            callback(null, true);
-        } else {
-            callback(new Error('Not allowed by CORS'));
-        }
-    },
+    origin: allowedOrigins,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept']
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin']
 }))
+
+// Explicitly handle preflight requests for all routes
+app.options('*', cors());
+
+// Basic request logger for debugging origins
+app.use((req, res, next) => {
+    console.log(`${req.method} ${req.url} - Origin: ${req.get('Origin')}`);
+    next();
+});
 
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }));
