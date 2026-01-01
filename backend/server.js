@@ -1,7 +1,6 @@
 require("dotenv").config()
 const express = require('express')
 const cookieParser = require('cookie-parser')
-const app = express()
 const cors = require('cors')
 
 // CORS configuration - Simplified and more compatible
@@ -11,25 +10,28 @@ const allowedOrigins = [
     'https://alpha-power-zone-apz.vercel.app'
 ];
 
-app.use(cors({
-    origin: true, // Dynamically allow the requesting origin
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin']
-}))
+const app = express()
 
-// Explicitly handle preflight requests for all routes
-app.options('*', (req, res) => {
-    res.header('Access-Control-Allow-Origin', req.get('Origin') || '*');
+// MANUAL CORS MIDDLEWARE - Guaranteed to set headers
+app.use((req, res, next) => {
+    const origin = req.get('Origin');
+    const allowedOrigins = [
+        'http://localhost:5173',
+        'http://localhost:5174',
+        'https://alpha-power-zone-apz.vercel.app'
+    ];
+
+    if (allowedOrigins.includes(origin) || !origin) {
+        res.header('Access-Control-Allow-Origin', origin || '*');
+    }
+
     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
     res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin');
     res.header('Access-Control-Allow-Credentials', 'true');
-    res.sendStatus(200);
-});
 
-// Basic request logger for debugging origins
-app.use((req, res, next) => {
-    console.log(`${req.method} ${req.url} - Origin: ${req.get('Origin')}`);
+    if (req.method === 'OPTIONS') {
+        return res.sendStatus(200);
+    }
     next();
 });
 
