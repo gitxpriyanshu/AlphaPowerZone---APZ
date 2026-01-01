@@ -35,6 +35,19 @@ const createProducts = async (req, res) => {
       return res.status(401).json({ message: "Owner ID missing from request" });
     }
 
+    // Explicit existence checks for relations
+    const [categoryExists, ownerExists] = await Promise.all([
+      prisma.category.findUnique({ where: { id: Number(categoryId) } }),
+      prisma.owner.findUnique({ where: { id: Number(ownerId) } })
+    ]);
+
+    if (!categoryExists) {
+      return res.status(404).json({ message: `Category with ID ${categoryId} not found` });
+    }
+    if (!ownerExists) {
+      return res.status(404).json({ message: `Owner with ID ${ownerId} not found` });
+    }
+
     const product = await prisma.product.create({
       data: {
         name,
@@ -44,18 +57,25 @@ const createProducts = async (req, res) => {
         ownerId: Number(ownerId),
         categoryId: Number(categoryId),
       },
+      include: {
+        category: true,
+        owner: { select: { name: true } }
+      }
     });
+
+    console.log("Product created successfully:", product.id);
 
     return res.status(201).json({
       message: "Product created successfully",
       product,
     });
   } catch (err) {
-    console.error("Error from createProducts:", err);
+    console.error("CRITICAL Error from createProducts:", err);
     return res.status(500).json({
       message: "Internal Server Error",
       error: err.message,
-      stack: process.env.NODE_ENV === 'production' ? undefined : err.stack
+      code: err.code, // Prisma error codes
+      details: err.meta || "No extra details"
     });
   }
 };
