@@ -33,6 +33,14 @@ const OwnerDashboard = () => {
     const [editingProduct, setEditingProduct] = useState(null);
     const [editingCategory, setEditingCategory] = useState(null);
 
+    // Optimization: Memoize stats to prevent recalculation on every render
+    const stats = useMemo(() => ({
+        totalProducts: products.length,
+        totalCategories: categories.length,
+        totalValue: products.reduce((acc, p) => acc + parseFloat(p.price || 0), 0),
+        avgPrice: products.length > 0 ? (products.reduce((acc, p) => acc + parseFloat(p.price || 0), 0) / products.length) : 0
+    }), [products, categories]);
+
     // Cleanup previews to avoid memory leaks
     useEffect(() => {
         return () => {

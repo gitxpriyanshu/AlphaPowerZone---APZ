@@ -157,7 +157,7 @@ const Cart = () => {
                                         <div className="flex items-center justify-between py-4">
                                             <dt className="text-base text-gray-600">Subtotal</dt>
                                             <dd className="text-base font-medium text-gray-900">
-                                                ₹{calculateTotal().toFixed(2)}
+                                                ₹{calculateTotal.toFixed(2)}
                                             </dd>
                                         </div>
                                         <div className="flex items-center justify-between py-4">
@@ -167,7 +167,7 @@ const Cart = () => {
                                         <div className="flex items-center justify-between py-4">
                                             <dt className="text-base font-bold text-gray-900">Total</dt>
                                             <dd className="text-base font-bold text-primary">
-                                                ₹{calculateTotal().toFixed(2)}
+                                                ₹{calculateTotal.toFixed(2)}
                                             </dd>
                                         </div>
                                     </dl>
