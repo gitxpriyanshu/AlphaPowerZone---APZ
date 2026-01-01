@@ -6,7 +6,7 @@ const cors = require('cors')
 app.use(express.json())
 app.use(express.urlencoded({ extended: true })); // Good practice for form-data
 app.use(cors({
-    origin: ['http://localhost:5173', 'http://localhost:5174'], // Support both Vite ports
+    origin: ['http://localhost:5173', 'http://localhost:5174', 'https://alpha-power-zone-apz.vercel.app'], // Support local and production
     credentials: true
 }))
 app.use(cookieParser())
