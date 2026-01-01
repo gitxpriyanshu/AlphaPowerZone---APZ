@@ -51,8 +51,11 @@ const signup = async (req, res) => {
 
     res.status(201).json({ message: "Registration successful!", user: { id: createUser.id, name: createUser.name, email: createUser.email } });
   } catch (err) {
-    console.log("Error form signup", err);
-    return res.status(500).json({ message: "Internal Server Error" });
+    console.error("Error from signup:", err);
+    return res.status(500).json({
+      message: "Internal Server Error",
+      error: process.env.NODE_ENV === 'production' ? err.message : err.stack
+    });
   }
 };
 
@@ -113,8 +116,8 @@ const signin = async (req, res) => {
 
     res.cookie("token", token, {
       httpOnly: true,
-      secure: false,
-      sameSite: "strict",
+      secure: true, // Required for sameSite: 'none'
+      sameSite: "none", // Required for cross-domain (Vercel to Render)
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
@@ -128,17 +131,20 @@ const signin = async (req, res) => {
       }
     });
   } catch (err) {
-    console.log("Error form signin", err);
-    return res.status(500).json({ message: "Internal Server Error" });
+    console.error("Error from signin:", err);
+    return res.status(500).json({
+      message: "Internal Server Error",
+      error: process.env.NODE_ENV === 'production' ? err.message : err.stack
+    });
   }
 };
 
 const logout = async (req, res) => {
   try {
     res.clearCookie("token", {
-      httpOnly: false,
-      secure: false,
-      sameSite: "strict",
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
     });
 
     res.status(200).json({
