@@ -79,6 +79,10 @@ const Landing = () => {
         }
     };
 
+    if (authLoading || user) {
+        return null; // Don't render anything while redirecting
+    }
+
     return (
         <div className="min-h-screen bg-[#fafafa] flex flex-col font-sans overflow-x-hidden">
             <Navbar />
