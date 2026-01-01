@@ -17,11 +17,9 @@ const Navbar = () => {
         }
     }, [user]);
 
-    // Speed Optimization: Minimal feedback delay for instant feel
+    // Speed Optimization: Truly instant render
     useEffect(() => {
-        setLoading(true);
-        const timer = setTimeout(() => setLoading(false), 50);
-        return () => clearTimeout(timer);
+        setLoading(false);
     }, [window.location.pathname]);
 
     const fetchCartCount = async () => {
@@ -40,8 +38,6 @@ const Navbar = () => {
 
     return (
         <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100 shadow-sm">
-            {/* Global Progress Bar */}
-            <div className={`absolute top-0 left-0 h-[2px] bg-primary transition-all duration-500 ease-out z-[60] ${loading ? 'w-full opacity-100' : 'w-0 opacity-0'}`} />
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between h-16 items-center">

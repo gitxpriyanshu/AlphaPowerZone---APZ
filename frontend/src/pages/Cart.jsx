@@ -71,21 +71,16 @@ const Cart = () => {
         return cartItems.reduce((acc, item) => acc + (item.product.price * item.quantity), 0);
     }, [cartItems]);
 
-    if (loading) return (
-        <div>
-            <Navbar />
-            <div className="flex justify-center items-center h-screen bg-gray-50">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-            </div>
-        </div>
-    );
-
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-gray-50 flex flex-col">
             <Navbar />
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
                 <h2 className="text-3xl font-bold text-gray-900 mb-8">Shopping Cart</h2>
-                {cartItems.length === 0 ? (
+                {loading && cartItems.length === 0 ? (
+                    <div className="flex justify-center items-center py-20">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+                    </div>
+                ) : cartItems.length === 0 ? (
                     <div className="text-center py-20 bg-white rounded-xl shadow-sm border border-gray-100">
                         <svg className="mx-auto h-16 w-16 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />

@@ -182,7 +182,7 @@ const OwnerDashboard = () => {
             <Navbar />
             <div className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
                 {loading && products.length === 0 && categories.length === 0 ? (
-                    <div className="flex-1 flex justify-center items-center py-20">
+                    <div className="flex justify-center items-center py-20">
                         <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-primary"></div>
                     </div>
                 ) : (

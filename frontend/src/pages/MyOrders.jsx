@@ -34,17 +34,6 @@ const MyOrders = () => {
         }
     };
 
-    if (loading) {
-        return (
-            <div>
-                <Navbar />
-                <div className="flex justify-center items-center h-screen bg-gray-50">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-                </div>
-            </div>
-        );
-    }
-
     return (
         <div className="min-h-screen bg-gray-50">
             <Navbar />
@@ -54,7 +43,11 @@ const MyOrders = () => {
                     <p className="text-gray-600">Track and manage your order history</p>
                 </div>
 
-                {orders.length === 0 ? (
+                {loading && orders.length === 0 ? (
+                    <div className="flex justify-center items-center py-20">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+                    </div>
+                ) : orders.length === 0 ? (
                     <div className="bg-white rounded-xl shadow-sm p-12 text-center border border-gray-100">
                         <svg className="mx-auto h-20 w-20 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
