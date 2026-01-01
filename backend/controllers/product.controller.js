@@ -23,7 +23,17 @@ const createProducts = async (req, res) => {
       });
     }
 
+    if (isNaN(categoryId)) {
+      return res.status(400).json({
+        message: "categoryId must be a number",
+      });
+    }
+
     const imageUrl = req.file.path;
+
+    if (!ownerId) {
+      return res.status(401).json({ message: "Owner ID missing from request" });
+    }
 
     const product = await prisma.product.create({
       data: {
@@ -31,7 +41,7 @@ const createProducts = async (req, res) => {
         description,
         price: Number(price),
         Image: imageUrl,
-        ownerId,
+        ownerId: Number(ownerId),
         categoryId: Number(categoryId),
       },
     });
@@ -44,6 +54,8 @@ const createProducts = async (req, res) => {
     console.error("Error from createProducts:", err);
     return res.status(500).json({
       message: "Internal Server Error",
+      error: err.message,
+      stack: process.env.NODE_ENV === 'production' ? undefined : err.stack
     });
   }
 };
