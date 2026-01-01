@@ -155,12 +155,14 @@ const OwnerDashboard = () => {
             price: product.price,
             categoryId: product.categoryId
         });
+        setProductPreview(product.Image);
         setView('products');
     };
 
     const startEditCategory = (category) => {
         setEditingCategory(category);
         setCategoryForm({ name: category.name });
+        setCategoryPreview(category.Image);
         setView('categories');
     };
 
