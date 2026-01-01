@@ -3,7 +3,7 @@ const prisma = require("../config/db.config");
 
 const verifyOwner = async (req, res, next) => {
   try {
-    const token = req.cookies?.token;
+    const token = req.cookies?.owner_token;
 
     if (!token) {
       return res.status(401).json({

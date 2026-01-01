@@ -2,7 +2,7 @@ const prisma = require("../config/db.config");
 
 const createOrder = async (req, res) => {
     try {
-        const userId = parseInt(req.userID);
+        const userId = parseInt(req.userId);
 
         // 1. Get user's cart
         const cartItems = await prisma.cart.findMany({
@@ -52,7 +52,7 @@ const createOrder = async (req, res) => {
 
 const getUserOrders = async (req, res) => {
     try {
-        const userId = req.userID;
+        const userId = req.userId;
         const orders = await prisma.order.findMany({
             where: { userId },
             include: {

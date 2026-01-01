@@ -2,7 +2,7 @@ const prisma = require("../config/db.config.js");
 
 const addToCart = async (req, res) => {
     try {
-        const userId = parseInt(req.userID);
+        const userId = parseInt(req.userId);
         const { productId, quantity = 1 } = req.body;
 
         if (!productId) {
@@ -41,7 +41,7 @@ const addToCart = async (req, res) => {
 
 const updateCartQuantity = async (req, res) => {
     try {
-        const userId = parseInt(req.userID);
+        const userId = parseInt(req.userId);
         const { id } = req.params;
         const { quantity } = req.body;
 
@@ -74,7 +74,7 @@ const updateCartQuantity = async (req, res) => {
 
 const getCart = async (req, res) => {
     try {
-        const userId = parseInt(req.userID);
+        const userId = parseInt(req.userId);
 
         const cartItems = await prisma.cart.findMany({
             where: {
@@ -103,7 +103,7 @@ const getCart = async (req, res) => {
 
 const removeFromCart = async (req, res) => {
     try {
-        const userId = parseInt(req.userID);
+        const userId = parseInt(req.userId);
         const { id } = req.params;
 
         const cartItem = await prisma.cart.findFirst({

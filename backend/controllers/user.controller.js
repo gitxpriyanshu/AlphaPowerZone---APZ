@@ -109,12 +109,12 @@ const signin = async (req, res) => {
     }
 
     const token = jwt.sign(
-      { userID: existingUser.id },
+      { userId: existingUser.id },
       process.env.JWT_SECRET,
       { expiresIn: "7d" }
     );
 
-    res.cookie("token", token, {
+    res.cookie("user_token", token, {
       httpOnly: true,
       secure: true, // Required for sameSite: 'none'
       sameSite: "none", // Required for cross-domain (Vercel to Render)
@@ -141,7 +141,7 @@ const signin = async (req, res) => {
 
 const logout = async (req, res) => {
   try {
-    res.clearCookie("token", {
+    res.clearCookie("user_token", {
       httpOnly: true,
       secure: true,
       sameSite: "none",

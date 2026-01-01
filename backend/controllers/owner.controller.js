@@ -96,7 +96,7 @@ const signin = async (req, res) => {
       { expiresIn: "7d" }
     );
 
-    res.cookie("token", token, {
+    res.cookie("owner_token", token, {
       httpOnly: true,
       secure: true, // Required for sameSite: 'none'
       sameSite: "none", // Required for cross-domain (Vercel to Render)
@@ -124,7 +124,7 @@ const signin = async (req, res) => {
 
 const logout = async (req, res) => {
   try {
-    res.clearCookie("token", {
+    res.clearCookie("owner_token", {
       httpOnly: true,
       secure: true,
       sameSite: "none",
