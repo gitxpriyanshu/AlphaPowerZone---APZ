@@ -3,13 +3,32 @@ const express = require('express')
 const cookieParser = require('cookie-parser')
 const app = express()
 const cors = require('cors')
-app.use(express.json())
-app.use(express.urlencoded({ extended: true })); // Good practice for form-data
+
+// CORS configuration - MUST BE FIRST
 app.use(cors({
-    origin: ['http://localhost:5173', 'http://localhost:5174', 'https://alpha-power-zone-apz.vercel.app'], // Support local and production
-    credentials: true
+    origin: (origin, callback) => {
+        const allowedOrigins = [
+            'http://localhost:5173',
+            'http://localhost:5174',
+            'https://alpha-power-zone-apz.vercel.app'
+        ];
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept']
 }))
+
+app.use(express.json())
+app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser())
+
+// Health check endpoint
+app.get('/api/health', (req, res) => res.json({ status: 'ok', timestamp: new Date() }))
 
 //routes
 app.use('/api/users/', require('./routes/user.route.js'))
