@@ -17,8 +17,34 @@ const OwnerDashboard = () => {
     const [categoryForm, setCategoryForm] = useState({ name: '' });
     const [productImage, setProductImage] = useState(null);
     const [categoryImage, setCategoryImage] = useState(null);
+    const [productPreview, setProductPreview] = useState(null);
+    const [categoryPreview, setCategoryPreview] = useState(null);
     const [editingProduct, setEditingProduct] = useState(null);
     const [editingCategory, setEditingCategory] = useState(null);
+
+    // Cleanup previews to avoid memory leaks
+    useEffect(() => {
+        return () => {
+            if (productPreview) URL.revokeObjectURL(productPreview);
+            if (categoryPreview) URL.revokeObjectURL(categoryPreview);
+        };
+    }, [productPreview, categoryPreview]);
+
+    const handleProductImageChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setProductImage(file);
+            setProductPreview(URL.createObjectURL(file));
+        }
+    };
+
+    const handleCategoryImageChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setCategoryImage(file);
+            setCategoryPreview(URL.createObjectURL(file));
+        }
+    };
 
     useEffect(() => {
         if (!user || user.role !== 'owner') {
@@ -63,6 +89,7 @@ const OwnerDashboard = () => {
             }
             setProductForm({ name: '', description: '', price: '', categoryId: '' });
             setProductImage(null);
+            setProductPreview(null);
             setEditingProduct(null);
             fetchData();
         } catch (err) {
@@ -90,6 +117,7 @@ const OwnerDashboard = () => {
             }
             setCategoryForm({ name: '' });
             setCategoryImage(null);
+            setCategoryPreview(null);
             setEditingCategory(null);
             fetchData();
         } catch (err) {
@@ -317,15 +345,33 @@ const OwnerDashboard = () => {
                                                     <option key={cat.id} value={cat.id}>{cat.name}</option>
                                                 ))}
                                             </select>
-                                            <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-primary transition-colors">
-                                                <FiImage className="w-8 h-8 mx-auto mb-2 text-gray-400" />
-                                                <input
-                                                    type="file"
-                                                    onChange={(e) => setProductImage(e.target.files[0])}
-                                                    className="text-sm"
-                                                    required={!editingProduct}
-                                                    accept="image/*"
-                                                />
+                                            <div className="space-y-2">
+                                                <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-primary transition-colors relative">
+                                                    {productPreview ? (
+                                                        <div className="relative h-32 w-full">
+                                                            <img src={productPreview} alt="Preview" className="h-full w-full object-contain rounded" />
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => { setProductImage(null); setProductPreview(null); }}
+                                                                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1"
+                                                            >
+                                                                <FiTrash2 />
+                                                            </button>
+                                                        </div>
+                                                    ) : (
+                                                        <>
+                                                            <FiImage className="w-8 h-8 mx-auto mb-2 text-gray-400" />
+                                                            <p className="text-xs text-gray-500 mb-2">Click to upload product image</p>
+                                                        </>
+                                                    )}
+                                                    <input
+                                                        type="file"
+                                                        onChange={handleProductImageChange}
+                                                        className="absolute inset-0 opacity-0 cursor-pointer"
+                                                        required={!editingProduct}
+                                                        accept="image/*"
+                                                    />
+                                                </div>
                                             </div>
                                             <button type="submit" className="w-full btn btn-primary py-3 text-lg">
                                                 {editingProduct ? 'Update' : 'Create'} Product
@@ -408,15 +454,33 @@ const OwnerDashboard = () => {
                                                 className="input-field"
                                                 required
                                             />
-                                            <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-primary transition-colors">
-                                                <FiImage className="w-8 h-8 mx-auto mb-2 text-gray-400" />
-                                                <input
-                                                    type="file"
-                                                    onChange={(e) => setCategoryImage(e.target.files[0])}
-                                                    className="text-sm"
-                                                    required={!editingCategory}
-                                                    accept="image/*"
-                                                />
+                                            <div className="space-y-2">
+                                                <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-primary transition-colors relative">
+                                                    {categoryPreview ? (
+                                                        <div className="relative h-32 w-full">
+                                                            <img src={categoryPreview} alt="Preview" className="h-full w-full object-contain rounded" />
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => { setCategoryImage(null); setCategoryPreview(null); }}
+                                                                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1"
+                                                            >
+                                                                <FiTrash2 />
+                                                            </button>
+                                                        </div>
+                                                    ) : (
+                                                        <>
+                                                            <FiImage className="w-8 h-8 mx-auto mb-2 text-gray-400" />
+                                                            <p className="text-xs text-gray-500 mb-2">Click to upload category image</p>
+                                                        </>
+                                                    )}
+                                                    <input
+                                                        type="file"
+                                                        onChange={handleCategoryImageChange}
+                                                        className="absolute inset-0 opacity-0 cursor-pointer"
+                                                        required={!editingCategory}
+                                                        accept="image/*"
+                                                    />
+                                                </div>
                                             </div>
                                             <button type="submit" className="w-full btn btn-primary py-3 text-lg">
                                                 {editingCategory ? 'Update' : 'Create'} Category
