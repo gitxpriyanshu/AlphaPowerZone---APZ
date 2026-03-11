@@ -3,8 +3,8 @@
 AlphaPowerZone is a premium e-commerce platform specializing in Gym equipment, Footwear, and Apparel. The application features a modern, ultra-premium UI/UX and a robust administrative dashboard for inventory management.
 
 ## 🚀 Live Demo
-- **Frontend:** [Vercel Deployment URL]
-- **Backend:** [Vercel/Heroku API URL]
+- **Frontend:** [AlphaPowerZone - Vercel](https://alpha-power-zone-apz.vercel.app)
+- **Backend API:** [AlphaPowerZone - Render](https://alphapowerzone-apz.onrender.com)
 
 ## ✨ Features
 
@@ -61,6 +61,10 @@ Run Prisma migrations:
 ```bash
 npx prisma migrate dev
 ```
+Start the backend server:
+```bash
+npm run dev
+```
 
 ### 3. Frontend Setup
 ```bash
@@ -74,10 +78,8 @@ npm run dev
 
 ## 🚀 Deployment
 
-### Vercel Deployment
-This project is pre-configured for Vercel deployment.
-- Root directory: `/`
-- Backend API routes are handled via `vercel.json`.
+- **Frontend:** Deployed on [Vercel](https://vercel.com).
+- **Backend:** Deployed on [Render](https://render.com).
 
 ## 📄 License
 This project is licensed under the ISC License.
