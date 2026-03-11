@@ -26,15 +26,15 @@
   }
 
   /* Global Cursor Pointer Fixes */
-  button,
+  button:not(:disabled),
   a,
-  input[type="submit"],
-  input[type="button"],
-  input[type="checkbox"],
-  input[type="radio"],
-  select,
-  [role="button"] {
-    cursor: pointer !important;
+  input[type="submit"]:not(:disabled),
+  input[type="button"]:not(:disabled),
+  input[type="checkbox"]:not(:disabled),
+  input[type="radio"]:not(:disabled),
+  select:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
   }
 }
 
