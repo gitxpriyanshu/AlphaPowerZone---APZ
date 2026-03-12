@@ -38,6 +38,14 @@ const Footer = () => {
                   My Orders
                 </Link>
               </li>
+              <li>
+                <Link
+                  to="/owner-login"
+                  className="hover:text-white transition-colors"
+                >
+                  Owner Portal
+                </Link>
+              </li>
             </ul>
           </div>
 
