@@ -32,16 +32,13 @@ const Navbar = () => {
   return (
     <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16 items-center">
+        <div className="flex justify-between h-24 items-center">
           <div className="flex-shrink-0 flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-primary to-purple-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-lg">A</span>
-            </div>
-            <Link
-              to={user ? "/home" : "/"}
-              className="text-2xl font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent"
-            >
-              APZ
+            <Link to={user ? "/home" : "/"} className="flex items-center gap-3">
+              <img src="/images/apz_logo.png" alt="Alpha Power Zone Logo" className="w-14 h-14 object-contain" />
+              <div className="text-2xl sm:text-3xl font-black text-gray-900 tracking-tight">
+                Alpha Power Zone
+              </div>
             </Link>
           </div>
           <div className="hidden md:flex space-x-8 items-center">
