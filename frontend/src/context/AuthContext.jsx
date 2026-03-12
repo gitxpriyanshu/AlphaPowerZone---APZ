@@ -35,9 +35,9 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const loginOwner = async (email, password) => {
+  const loginOwner = async (email, password, secretKey) => {
     try {
-      const res = await api.post("/owners/signin", { email, password });
+      const res = await api.post("/owners/signin", { email, password, secretKey });
       const ownerData = res.data.owner; // Backend returns { message, owner: {id, name, email, role: 'owner'} }
       setUser(ownerData);
       localStorage.setItem("user", JSON.stringify(ownerData));
