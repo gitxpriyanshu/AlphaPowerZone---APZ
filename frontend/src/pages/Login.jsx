@@ -8,21 +8,18 @@ const Login = () => {
   const { showToast } = useToast();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [isOwner, setIsOwner] = useState(false);
-  const { loginUser, loginOwner } = useAuth();
+  const { loginUser } = useAuth();
   const navigate = useNavigate();
   const [error, setError] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-    const res = isOwner
-      ? await loginOwner(email, password)
-      : await loginUser(email, password);
+    const res = await loginUser(email, password);
 
     if (res.success) {
       showToast("Login successful!", "success");
-      navigate(isOwner ? "/dashboard" : "/home");
+      navigate("/home");
     } else {
       setError(res.message);
     }
@@ -35,7 +32,7 @@ const Login = () => {
         <div className="max-w-md w-full space-y-8 bg-white p-10 rounded-2xl shadow-xl border border-gray-100">
           <div>
             <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-              {isOwner ? "Owner Portal" : "Welcome Back"}
+              Welcome Back
             </h2>
             <p className="mt-2 text-center text-sm text-gray-600">
               Sign in to your account
@@ -81,17 +78,6 @@ const Login = () => {
               </button>
             </div>
           </form>
-          <div className="flex items-center justify-center mt-4">
-            <label className="flex items-center space-x-2 cursor-pointer select-none text-gray-600 hover:text-gray-900 transition font-medium text-sm p-2 rounded-lg hover:bg-gray-100 w-full justify-center">
-              <input
-                type="checkbox"
-                className="form-checkbox h-4 w-4 text-primary rounded border-gray-300 focus:ring-primary transition duration-150 ease-in-out"
-                checked={isOwner}
-                onChange={(e) => setIsOwner(e.target.checked)}
-              />
-              <span>Login as Owner</span>
-            </label>
-          </div>
         </div>
       </div>
     </div>
