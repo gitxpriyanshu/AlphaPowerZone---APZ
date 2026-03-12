@@ -9,6 +9,7 @@ import CategoryPage from './pages/CategoryPage';
 import OwnerDashboard from './pages/OwnerDashboard';
 import UserDashboard from './pages/UserDashboard';
 import MyOrders from './pages/MyOrders';
+import OwnerLogin from './pages/OwnerLogin';
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
       <Route path="/" element={<Landing />} />
       <Route path="/home" element={<Home />} />
       <Route path="/login" element={<Login />} />
+      <Route path="/owner-login" element={<OwnerLogin />} />
       <Route path="/register" element={<Register />} />
       <Route path="/cart" element={<Cart />} />
       <Route path="/checkout" element={<Checkout />} />
