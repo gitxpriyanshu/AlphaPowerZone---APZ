@@ -28,15 +28,19 @@ const verifyOwner = async (req, res, next) => {
 
     if (!owner) {
       return res.status(403).json({
-        message: "Access denied. Owner only",
+        success: false,
+        message: "Access denied. Owner only.",
       });
     }
 
     req.ownerId = owner.id;
+
     next();
   } catch (err) {
-    console.log("Owner auth error:", err);
+    console.log("Owner auth error:", err.message);
+
     return res.status(401).json({
+      success: false,
       message: "Invalid or expired token",
     });
   }
