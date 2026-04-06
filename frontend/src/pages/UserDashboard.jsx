@@ -1,66 +1,37 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { useAuth } from "../context/AuthContext";
+import { useData } from "../context/DataContext";
 
 const UserDashboard = () => {
   const { user } = useAuth();
+  const { cart, orders, loading: dataLoading } = useData();
   const navigate = useNavigate();
-  const [stats, setStats] = useState(() => {
-    const cached = localStorage.getItem("user_stats");
-    return cached
-      ? JSON.parse(cached)
-      : { totalOrders: 0, cartItems: 0, cartTotal: 0 };
-  });
-  const [recentOrders, setRecentOrders] = useState(() => {
-    const cached = localStorage.getItem("user_recent_orders");
-    return cached ? JSON.parse(cached) : [];
-  });
-  const [loading, setLoading] = useState(
-    recentOrders.length === 0 && stats.totalOrders === 0
-  );
+
+  const stats = useMemo(() => {
+    const cartTotal = cart.reduce(
+      (acc, item) => acc + item.product.price * item.quantity,
+      0
+    );
+    return {
+      totalOrders: orders.length,
+      cartItems: cart.length,
+      cartTotal: cartTotal,
+    };
+  }, [cart, orders]);
+
+  const recentOrders = useMemo(() => orders.slice(0, 3), [orders]);
+  const loading = dataLoading;
 
   useEffect(() => {
     if (!user || user.role !== "user") {
       navigate("/login");
       return;
     }
-    fetchDashboardData();
   }, [user, navigate]);
-
-  const fetchDashboardData = async () => {
-    try {
-      const [ordersRes, cartRes] = await Promise.all([
-        api.get("/orders"),
-        api.get("/cart"),
-      ]);
-      const cartTotal = cartRes.data.reduce(
-        (acc, item) => acc + item.product.price * item.quantity,
-        0
-      );
-      const newStats = {
-        totalOrders: ordersRes.data.length,
-        cartItems: cartRes.data.length,
-        cartTotal: cartTotal,
-      };
-      const newRecentOrders = ordersRes.data.slice(0, 3);
-
-      setStats(newStats);
-      setRecentOrders(newRecentOrders);
-
-      localStorage.setItem("user_stats", JSON.stringify(newStats));
-      localStorage.setItem(
-        "user_recent_orders",
-        JSON.stringify(newRecentOrders)
-      );
-    } catch (err) {
-      console.error("Error fetching dashboard data:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -74,7 +45,7 @@ const UserDashboard = () => {
           <>
             <div className="mb-8">
               <h1 className="text-4xl font-bold text-gray-900 mb-2">
-                Welcome back, {user.name}!
+                Welcome back, {user?.name}!
               </h1>
               <p className="text-gray-600">
                 Manage your orders and shopping cart

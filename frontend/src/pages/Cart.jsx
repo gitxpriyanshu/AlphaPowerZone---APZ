@@ -1,81 +1,42 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
+import { useAuth } from "../context/AuthContext";
+import { useData } from "../context/DataContext";
 import Navbar from "../components/Navbar";
 import { FiPlus, FiMinus, FiTrash2 } from "react-icons/fi";
 import { useToast } from "../context/ToastContext";
 
 const Cart = () => {
   const { showToast } = useToast();
-  const [cartItems, setCartItems] = useState(() => {
-    const cached = localStorage.getItem("cached_cart");
-    return cached ? JSON.parse(cached) : [];
-  });
-  const [loading, setLoading] = useState(cartItems.length === 0);
+  const { cart: cartItems, loading, refreshCart } = useData();
   const navigate = useNavigate();
-
-  const fetchCart = useCallback(async () => {
-    try {
-      const res = await api.get("/cart");
-      setCartItems(res.data);
-      localStorage.setItem("cached_cart", JSON.stringify(res.data));
-    } catch (err) {
-      console.error("Failed to fetch cart", err);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchCart();
-  }, [fetchCart]);
 
   const updateQuantity = useCallback(
     async (id, newQuantity) => {
       if (newQuantity < 1) return;
 
-      // Optimistic update
-      const previousItems = [...cartItems];
-      const updatedItems = cartItems.map((item) =>
-        item.id === id ? { ...item, quantity: newQuantity } : item
-      );
-      setCartItems(updatedItems);
-      localStorage.setItem("cached_cart", JSON.stringify(updatedItems));
-
       try {
         await api.put(`/cart/${id}`, { quantity: newQuantity });
-        // Sync with server silently
-        const res = await api.get("/cart");
-        setCartItems(res.data);
-        localStorage.setItem("cached_cart", JSON.stringify(res.data));
+        refreshCart(); 
       } catch (err) {
-        console.error(err);
-        setCartItems(previousItems);
-        localStorage.setItem("cached_cart", JSON.stringify(previousItems));
         showToast("Failed to update quantity", "error");
       }
     },
-    [cartItems, showToast]
+    [refreshCart, showToast]
   );
 
   const handleRemove = useCallback(
     async (id) => {
-      const previousItems = [...cartItems];
-      const updatedItems = cartItems.filter((item) => item.id !== id);
-      setCartItems(updatedItems);
-      localStorage.setItem("cached_cart", JSON.stringify(updatedItems));
-
       try {
         await api.delete(`/cart/remove/${id}`);
         showToast("Item removed from cart", "success");
+        refreshCart();
       } catch (err) {
-        console.error(err);
-        setCartItems(previousItems);
-        localStorage.setItem("cached_cart", JSON.stringify(previousItems));
         showToast("Failed to remove item", "error");
       }
     },
-    [cartItems, showToast]
+    [refreshCart, showToast]
   );
 
   const handleCheckout = () => {

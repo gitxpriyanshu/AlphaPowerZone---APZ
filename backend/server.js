@@ -1,7 +1,16 @@
 require("dotenv").config()
 const express = require('express')
 const cookieParser = require('cookie-parser')
+const ApiMonitor = require('apimonitor-node') // <-- Step 1: Require SDK
 const app = express()
+
+// <-- Step 2: Initialize AT THE VERY TOP (Crucial for capturing all hits!)
+app.use(ApiMonitor({
+    apiKey: 'apim_194c56caf56e886236dd8d9af49b018620cace36',
+    serviceName: 'APZ-Optimized-Test',
+    ingestUrl: 'http://localhost:5001/api/hit', // Point to your local port 5001
+    debug: true // Force logs into the terminal for troubleshooting
+}));
 
 // MANUAL CORS MIDDLEWARE - Applied to ALL requests
 app.use((req, res, next) => {
@@ -15,7 +24,6 @@ app.use((req, res, next) => {
     if (allowedOrigins.includes(origin)) {
         res.header('Access-Control-Allow-Origin', origin);
     } else {
-        // Fallback for non-browser requests or missing origin header
         res.header('Access-Control-Allow-Origin', 'https://alpha-power-zone-apz.vercel.app');
     }
 

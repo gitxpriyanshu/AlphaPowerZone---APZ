@@ -1,38 +1,23 @@
-import { useEffect, useState } from "react";
-import api from "../api/axios";
+import { useEffect } from "react";
+import { useAuth } from "../context/AuthContext";
+import { useData } from "../context/DataContext";
+import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-import { useAuth } from "../context/AuthContext";
-import { useNavigate } from "react-router-dom";
 
 const MyOrders = () => {
-  const [orders, setOrders] = useState(() => {
-    const cached = localStorage.getItem("user_orders");
-    return cached ? JSON.parse(cached) : [];
-  });
-  const [loading, setLoading] = useState(orders.length === 0);
+  const { orders, loading: dataLoading } = useData();
   const { user } = useAuth();
   const navigate = useNavigate();
+
+  const loading = dataLoading;
 
   useEffect(() => {
     if (!user || user.role !== "user") {
       navigate("/login");
       return;
     }
-    fetchOrders();
   }, [user, navigate]);
-
-  const fetchOrders = async () => {
-    try {
-      const res = await api.get("/orders");
-      setOrders(res.data);
-      localStorage.setItem("user_orders", JSON.stringify(res.data));
-    } catch (err) {
-      console.error("Failed to fetch orders", err);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <div className="min-h-screen bg-gray-50">

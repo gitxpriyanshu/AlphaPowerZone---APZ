@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
 import { useAuth } from "../context/AuthContext";
+import { useData } from "../context/DataContext";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import {
@@ -18,87 +19,24 @@ import { useToast } from "../context/ToastContext";
 const Home = () => {
   const { showToast } = useToast();
   const { user } = useAuth();
+  const { products, categories, loading, addToCart: globalAddToCart } = useData();
   const navigate = useNavigate();
 
-  const [products, setProducts] = useState(() => {
-    const cached = localStorage.getItem("cached_products");
-    return cached ? JSON.parse(cached) : [];
-  });
-  const [categories, setCategories] = useState(() => {
-    const cached = localStorage.getItem("cached_categories");
-    return cached ? JSON.parse(cached) : [];
-  });
-  const [loading, setLoading] = useState(products.length === 0);
   const [searchQuery, setSearchQuery] = useState("");
 
   const fetchData = useCallback(async () => {
-    try {
-      const [productsRes, categoriesRes] = await Promise.all([
-        api.get("/products"),
-        api.get("/categories"),
-      ]);
-      setProducts(productsRes.data);
-      localStorage.setItem("cached_products", JSON.stringify(productsRes.data));
-
-      const filteredCategories = categoriesRes.data.filter(
-        (cat) => !cat.name.toLowerCase().includes("default")
-      );
-      setCategories(filteredCategories);
-      localStorage.setItem(
-        "cached_categories",
-        JSON.stringify(filteredCategories)
-      );
-    } catch (err) {
-      console.error("Failed to fetch data", err);
-    } finally {
-      setLoading(false);
-    }
+    // This is now handled by DataContext automatically
   }, []);
 
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
-
   const prefetchCategory = useCallback(async (catId) => {
-    const cacheKey = `cached_cat_${catId}`;
-    if (localStorage.getItem(cacheKey)) return;
-
-    try {
-      const [categoryRes, productsRes] = await Promise.all([
-        api.get(`/categories/${catId}`),
-        api.get(`/products`),
-      ]);
-      const catProds = productsRes.data.filter(
-        (p) => p.categoryId === parseInt(catId)
-      );
-      localStorage.setItem(
-        `cached_cat_${catId}`,
-        JSON.stringify(categoryRes.data)
-      );
-      localStorage.setItem(
-        `cached_cat_prods_${catId}`,
-        JSON.stringify(catProds)
-      );
-    } catch (err) {
-      // Silently fail prefetch
-    }
+    // Shared data is already in DataContext, no need to prefetch separately
   }, []);
 
   const addToCart = useCallback(
     async (productId) => {
-      if (!user || user.role !== "user") {
-        showToast("Please login as User to add items to cart", "error");
-        return;
-      }
-
-      try {
-        await api.post("/cart/add", { productId });
-        showToast("Product added to cart!", "success");
-      } catch (err) {
-        showToast("Failed to add to cart", "error");
-      }
+      globalAddToCart(productId, showToast); 
     },
-    [user, showToast]
+    [globalAddToCart, showToast]
   );
 
   // useMemo for heavy filter operations

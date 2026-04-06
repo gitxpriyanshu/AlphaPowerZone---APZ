@@ -4,15 +4,12 @@ import api from "../api/axios";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { useAuth } from "../context/AuthContext";
+import { useData } from "../context/DataContext";
 import { useToast } from "../context/ToastContext";
 
 const Checkout = () => {
   const { showToast } = useToast();
-  const [cartItems, setCartItems] = useState(() => {
-    const cached = localStorage.getItem("cached_cart");
-    return cached ? JSON.parse(cached) : [];
-  });
-  const [loading, setLoading] = useState(cartItems.length === 0);
+  const { cart: cartItems, loading, refreshAll } = useData();
   const [fullName, setFullName] = useState("");
   const [addressLine1, setAddressLine1] = useState("");
   const [addressLine2, setAddressLine2] = useState("");
@@ -25,31 +22,17 @@ const Checkout = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  const fetchCart = useCallback(async () => {
-    try {
-      const res = await api.get("/cart");
-      if (res.data.length === 0 && !localStorage.getItem("cached_cart")) {
-        showToast("Your cart is empty!", "info");
-        navigate("/cart");
-        return;
-      }
-      setCartItems(res.data);
-      localStorage.setItem("cached_cart", JSON.stringify(res.data));
-    } catch (err) {
-      console.error("Failed to fetch cart", err);
-    } finally {
-      setLoading(false);
-    }
-  }, [navigate, showToast]);
-
   useEffect(() => {
     if (!user || user.role !== "user") {
       navigate("/login");
       return;
     }
     setFullName(user.name || "");
-    fetchCart();
-  }, [user, navigate, fetchCart]);
+    if (!loading && cartItems.length === 0) {
+      showToast("Your cart is empty!", "info");
+      navigate("/cart");
+    }
+  }, [user, navigate, loading, cartItems, showToast]);
 
   const calculateTotal = useMemo(() => {
     return cartItems.reduce(
@@ -93,6 +76,7 @@ const Checkout = () => {
       });
       showToast("Order placed successfully!", "success");
       setShowSuccessModal(true);
+      refreshAll(); 
     } catch (err) {
       showToast("Failed to place order", "error");
     } finally {

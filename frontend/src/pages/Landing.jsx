@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
 import { useAuth } from "../context/AuthContext";
+import { useData } from "../context/DataContext";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import {
@@ -14,17 +15,9 @@ import {
 } from "react-icons/fi";
 
 const Landing = () => {
-  // Optimization: Initialize from localStorage for instant feel
-  const [products, setProducts] = useState(() => {
-    const cached = localStorage.getItem("cached_products");
-    return cached ? JSON.parse(cached) : [];
-  });
-  const [categories, setCategories] = useState(() => {
-    const cached = localStorage.getItem("cached_categories");
-    return cached ? JSON.parse(cached) : [];
-  });
+  const { products, categories, loading: dataLoading, refreshCart } = useData();
   const { user, loading: authLoading } = useAuth();
-  const [loading, setLoading] = useState(products.length === 0);
+  const loading = dataLoading || authLoading;
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -32,35 +25,6 @@ const Landing = () => {
       navigate("/home");
     }
   }, [user, authLoading, navigate]);
-
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const fetchData = async () => {
-    try {
-      const [productsRes, categoriesRes] = await Promise.all([
-        api.get("/products"),
-        api.get("/categories"),
-      ]);
-      setProducts(productsRes.data);
-      // Save to cache
-      localStorage.setItem("cached_products", JSON.stringify(productsRes.data));
-
-      const filteredCategories = categoriesRes.data
-        .filter((cat) => !cat.name.toLowerCase().includes("default"))
-        .slice(0, 3);
-      setCategories(filteredCategories);
-      localStorage.setItem(
-        "cached_categories",
-        JSON.stringify(filteredCategories)
-      );
-    } catch (err) {
-      console.error("Failed to fetch data", err);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const addToCart = async (productId) => {
     if (!user || user.role !== "user") {
@@ -70,6 +34,7 @@ const Landing = () => {
     try {
       await api.post("/cart/add", { productId });
       alert("Added to cart!");
+      refreshCart();
     } catch (err) {
       alert("Failed to add to cart");
     }
@@ -83,6 +48,7 @@ const Landing = () => {
     }
     try {
       await api.post("/cart/add", { productId });
+      refreshCart();
       window.location.href = "/cart";
     } catch (err) {
       alert("Failed to proceed to checkout");
@@ -227,7 +193,7 @@ const Landing = () => {
                     className="h-[500px] rounded-[2.5rem] bg-gray-200 animate-pulse"
                   ></div>
                 ))
-              : categories.map((category, index) => (
+              : categories.slice(0, 3).map((category, index) => (
                   <div
                     key={category.id}
                     onClick={() => navigate(`/category/${category.id}`)}

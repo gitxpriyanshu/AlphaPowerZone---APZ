@@ -17,7 +17,8 @@
   },
   "dependencies": {
     "@prisma/client": "^5.7.1",
-    "axios": "^1.13.2",
+    "apimonitor-node": "file:../../API_MONITORING/sdk",
+    "axios": "^1.14.0",
     "bcrypt": "^6.0.0",
     "cloudinary": "^1.41.3",
     "cookie-parser": "^1.4.7",

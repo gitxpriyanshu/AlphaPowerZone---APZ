@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
 import { useAuth } from "../context/AuthContext";
+import { useData } from "../context/DataContext";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import {
@@ -17,20 +18,11 @@ import { useToast } from "../context/ToastContext";
 const OwnerDashboard = () => {
   const { showToast } = useToast();
   const { user } = useAuth();
+  const { products, categories, loading: dataLoading, refreshGlobalData } = useData();
   const navigate = useNavigate();
   const [view, setView] = useState("overview");
 
-  // Optimization: Initialize from localStorage for instant feel
-  const [products, setProducts] = useState(() => {
-    const cached = localStorage.getItem("owner_products");
-    return cached ? JSON.parse(cached) : [];
-  });
-  const [categories, setCategories] = useState(() => {
-    const cached = localStorage.getItem("owner_categories");
-    return cached ? JSON.parse(cached) : [];
-  });
-
-  const [loading, setLoading] = useState(products.length === 0);
+  const [loading, setLoading] = useState(dataLoading);
   const [productForm, setProductForm] = useState({
     name: "",
     description: "",
@@ -87,33 +79,12 @@ const OwnerDashboard = () => {
     }
   };
 
-  const fetchData = useCallback(async () => {
-    try {
-      const [productsRes, categoriesRes] = await Promise.all([
-        api.get("/products"),
-        api.get("/categories"),
-      ]);
-      setProducts(productsRes.data);
-      setCategories(categoriesRes.data);
-      localStorage.setItem("owner_products", JSON.stringify(productsRes.data));
-      localStorage.setItem(
-        "owner_categories",
-        JSON.stringify(categoriesRes.data)
-      );
-    } catch (err) {
-      console.error("Error fetching data:", err);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
   useEffect(() => {
     if (!user || user.role !== "owner") {
       navigate("/login");
       return;
     }
-    fetchData();
-  }, [user, navigate, fetchData]);
+  }, [user, navigate]);
 
   const handleProductSubmit = useCallback(
     async (e) => {
@@ -141,12 +112,12 @@ const OwnerDashboard = () => {
         setProductImage(null);
         setProductPreview(null);
         setEditingProduct(null);
-        fetchData();
+        refreshGlobalData();
       } catch (err) {
         showToast("Failed to save product", "error");
       }
     },
-    [editingProduct, productForm, productImage, fetchData, showToast]
+    [editingProduct, productForm, productImage, refreshGlobalData, showToast]
   );
 
   const handleCategorySubmit = useCallback(
@@ -168,19 +139,19 @@ const OwnerDashboard = () => {
         setCategoryImage(null);
         setCategoryPreview(null);
         setEditingCategory(null);
-        fetchData();
+        refreshGlobalData();
       } catch (err) {
         showToast("Failed to save category", "error");
       }
     },
-    [categoryForm, categoryImage, editingCategory, fetchData, showToast]
+    [categoryForm, categoryImage, editingCategory, refreshGlobalData, showToast]
   );
 
   const deleteProduct = async (id) => {
     try {
       await api.delete(`/products/${id}`);
       showToast("Product deleted successfully!", "success");
-      fetchData();
+      refreshGlobalData();
     } catch (err) {
       showToast("Failed to delete product", "error");
     }
@@ -190,7 +161,7 @@ const OwnerDashboard = () => {
     try {
       await api.delete(`/categories/${id}`);
       showToast("Category deleted successfully!", "success");
-      fetchData();
+      refreshGlobalData();
     } catch (err) {
       showToast("Failed to delete category", "error");
     }

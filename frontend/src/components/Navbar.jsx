@@ -1,28 +1,17 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { useData } from "../context/DataContext";
 import { useState, useEffect } from "react";
 import api from "../api/axios";
 import { FiShoppingCart } from "react-icons/fi";
 
 const Navbar = () => {
   const { user, logout } = useAuth();
+  const { cart } = useData();
   const navigate = useNavigate();
-  const [cartCount, setCartCount] = useState(0);
 
-  const fetchCartCount = async () => {
-    try {
-      const res = await api.get("/cart");
-      setCartCount(res.data.length);
-    } catch (err) {
-      console.error("Failed to fetch cart count", err);
-    }
-  };
+  // Removed local fetchCartCount to use global DataContext state
 
-  useEffect(() => {
-    if (user?.role === "user") {
-      fetchCartCount();
-    }
-  }, [user]);
 
   const handleLogout = async () => {
     await logout();
@@ -86,9 +75,9 @@ const Navbar = () => {
                     >
                       <FiShoppingCart className="w-5 h-5" />
                       Cart
-                      {cartCount > 0 && (
+                      {cart.length > 0 && (
                         <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
-                          {cartCount}
+                          {cart.length}
                         </span>
                       )}
                     </Link>

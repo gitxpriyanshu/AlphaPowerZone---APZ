@@ -1,70 +1,31 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../api/axios";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { useAuth } from "../context/AuthContext";
+import { useData } from "../context/DataContext";
 import { useToast } from "../context/ToastContext";
 
 const CategoryPage = () => {
   const { showToast } = useToast();
   const { categoryId } = useParams();
   const navigate = useNavigate();
-  const [category, setCategory] = useState(() => {
-    const cached = localStorage.getItem(`cached_cat_${categoryId}`);
-    return cached ? JSON.parse(cached) : null;
-  });
-  const [products, setProducts] = useState(() => {
-    const cached = localStorage.getItem(`cached_cat_prods_${categoryId}`);
-    return cached ? JSON.parse(cached) : [];
-  });
-  const [loading, setLoading] = useState(!category || products.length === 0);
+  const { categories, products: allProducts, loading, addToCart: globalAddToCart } = useData();
   const { user } = useAuth();
 
-  useEffect(() => {
-    fetchCategoryData();
-  }, [categoryId]);
+  const category = useMemo(() => 
+    categories.find(c => c.id === parseInt(categoryId)), 
+    [categories, categoryId]
+  );
+  
+  const products = useMemo(() => 
+    allProducts.filter(p => p.categoryId === parseInt(categoryId)),
+    [allProducts, categoryId]
+  );
 
-  const fetchCategoryData = async () => {
-    try {
-      const [categoryRes, productsRes] = await Promise.all([
-        api.get(`/categories/${categoryId}`),
-        api.get(`/products`),
-      ]);
-
-      setCategory(categoryRes.data);
-      const catProds = productsRes.data.filter(
-        (p) => p.categoryId === parseInt(categoryId)
-      );
-      setProducts(catProds);
-
-      // Cache results
-      localStorage.setItem(
-        `cached_cat_${categoryId}`,
-        JSON.stringify(categoryRes.data)
-      );
-      localStorage.setItem(
-        `cached_cat_prods_${categoryId}`,
-        JSON.stringify(catProds)
-      );
-    } catch (err) {
-      console.error("Failed to fetch category data", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const addToCart = async (productId) => {
-    if (!user || user.role !== "user") {
-      showToast("Please login as User to add items to cart", "error");
-      return;
-    }
-    try {
-      await api.post("/cart/add", { productId });
-      showToast("Product added to cart!", "success");
-    } catch (err) {
-      showToast("Failed to add to cart", "error");
-    }
+  const addToCart = (productId) => {
+    globalAddToCart(productId, showToast);
   };
 
   const buyNow = async (productId) => {
@@ -73,12 +34,8 @@ const CategoryPage = () => {
       navigate("/login");
       return;
     }
-    try {
-      await api.post("/cart/add", { productId });
-      navigate("/cart");
-    } catch (err) {
-      showToast("Failed to proceed to checkout", "error");
-    }
+    await globalAddToCart(productId, null); // Add without duplicate toast
+    navigate("/cart");
   };
 
   const Skeletons = () => (
