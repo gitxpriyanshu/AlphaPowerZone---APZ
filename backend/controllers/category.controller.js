@@ -92,6 +92,21 @@ const deleteCategory = async (req, res) => {
             return res.status(404).json({ message: "Category not found" });
         }
 
+        // Get all product IDs in this category to clean up related records
+        const products = await prisma.product.findMany({
+            where: { categoryId: parseInt(id) },
+            select: { id: true }
+        });
+        const productIds = products.map(p => p.id);
+
+        if (productIds.length > 0) {
+            // Delete from Cart and OrderItem first to avoid further FK issues
+            await prisma.cart.deleteMany({ where: { productId: { in: productIds } } });
+            await prisma.orderItem.deleteMany({ where: { productId: { in: productIds } } });
+            // Delete the products
+            await prisma.product.deleteMany({ where: { categoryId: parseInt(id) } });
+        }
+
         await prisma.category.delete({ where: { id: parseInt(id) } });
         res.status(200).json({ message: "Category deleted successfully" });
     } catch (err) {

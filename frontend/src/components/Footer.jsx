@@ -8,7 +8,7 @@ const Footer = () => {
           {/* Brand */}
           <div className="col-span-1">
             <h3 className="text-2xl font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent mb-4">
-              APZ
+              Alpha Power Zone
             </h3>
             <p className="text-gray-400 text-sm">
               Your trusted e-commerce platform for quality products with fast
@@ -80,7 +80,7 @@ const Footer = () => {
           <div>
             <h4 className="font-semibold mb-4">Contact</h4>
             <ul className="space-y-2 text-sm text-gray-400">
-              <li>Email: support@apz.com</li>
+              <li>Email: alphapowerzone.apz@gmail.com</li>
               <li>Phone: +91 1234567890</li>
               <li>Address: Mumbai, India</li>
             </ul>
