@@ -1,0 +1,12 @@
+import { Router } from 'express';
+import * as analyticsController from '../controllers/analytics.controller.js';
+import { verifyOwnerJWT } from '../middlewares/ownerAuth.middleware.js';
+const router = Router();
+router.use(verifyOwnerJWT);
+router.get('/overview', analyticsController.getOverview);
+router.get('/revenue', analyticsController.getRevenueChart);
+router.get('/top-products', analyticsController.getTopProducts);
+router.get('/order-status', analyticsController.getOrderStatus);
+router.get('/customers', analyticsController.getCustomers);
+router.get('/all-orders', analyticsController.getAllOrders);
+export default router;

@@ -1,0 +1,35 @@
+import { Router } from 'express';
+import * as reviewController from '../controllers/review.controller.js';
+import { verifyJWT } from '../middlewares/auth.middleware.js';
+import { validate } from '../middlewares/validate.middleware.js';
+import { createReviewSchema, updateReviewSchema } from '../validators/review.validator.js';
+import { publicRateLimiter, authRateLimiter } from '../middlewares/rateLimit.middleware.js';
+
+const router = Router();
+
+router.get('/product/:productId', publicRateLimiter, reviewController.getProductReviews);
+
+router.post(
+  '/:productId',
+  authRateLimiter,
+  verifyJWT,
+  validate(createReviewSchema),
+  reviewController.createReview
+);
+
+router.put(
+  '/:reviewId',
+  authRateLimiter,
+  verifyJWT,
+  validate(updateReviewSchema),
+  reviewController.updateReview
+);
+
+router.delete(
+  '/:reviewId',
+  authRateLimiter,
+  verifyJWT,
+  reviewController.deleteReview
+);
+
+export default router;

@@ -1,0 +1,14 @@
+import { Router } from 'express';
+import * as paymentController from '../controllers/payment.controller.js';
+import { verifyJWT } from '../middlewares/auth.middleware.js';
+import { authRateLimiter } from '../middlewares/rateLimit.middleware.js';
+
+const router = Router();
+
+router.post('/create-order', verifyJWT, authRateLimiter, paymentController.createOrder);
+router.post('/verify', verifyJWT, authRateLimiter, paymentController.verifyPayment);
+router.post('/cod-order', verifyJWT, authRateLimiter, paymentController.createCODOrder);
+router.post('/pay-existing', verifyJWT, authRateLimiter, paymentController.payExistingOrder);
+router.post('/webhook', paymentController.webhook);
+
+export default router;

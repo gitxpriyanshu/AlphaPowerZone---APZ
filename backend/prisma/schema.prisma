@@ -9,76 +9,224 @@ datasource db {
 }
 
 model User {
-  id       Int    @id @default(autoincrement())
-  name     String
-  email    String @unique
-  age      Int
-  mobile   String
-  address  String?
-  password String
-  carts    Cart[]
-  orders   Order[]
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  password      String
+  phone         String?
+  avatar        String?
+  isVerified    Boolean   @default(false)
+  addresses     Address[]
+  orders        Order[]
+  cart          CartItem[]
+  wishlist      WishlistItem[]
+  reviews       Review[]
+  fitnessProfile FitnessProfile?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 }
 
-model Owner {
-  id       Int       @id @default(autoincrement())
-  name     String
-  email    String    @unique
-  password String
-  products Product[]
-}
-
-model Category {
-  id       Int       @id @default(autoincrement())
-  name     String
-  Image    String
-  products Product[]
+model Address {
+  id        String  @id @default(cuid())
+  userId    String
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  phone     String
+  line1     String
+  line2     String?
+  city      String
+  state     String
+  pincode   String
+  isDefault Boolean @default(false)
+  orders    Order[]
 }
 
 model Product {
-  id          Int     @id @default(autoincrement())
-  Image       String
-  name        String
-  description String
-  price       Float
-  rating      Float?
-  review      String?
-  carts       Cart[]
-  
-  categoryId Int
-  ownerId    Int
-  original_items OrderItem[]
+  id           String        @id @default(cuid())
+  name         String
+  slug         String        @unique
+  description  String        @db.Text
+  price        Float
+  comparePrice Float?
+  discount     Int           @default(0)
+  images       String[]
+  categoryId   String
+  category     Category      @relation(fields: [categoryId], references: [id])
+  stock        Int           @default(0)
+  sku          String?       @unique
+  tags         String[]
+  isActive     Boolean       @default(true)
+  isFeatured   Boolean       @default(false)
+  cartItems    CartItem[]
+  orderItems   OrderItem[]
+  wishlistItems WishlistItem[]
+  reviews      Review[]
+  avgRating    Float         @default(0)
+  reviewCount  Int           @default(0)
+  wholesalePrice Float         @default(0)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
 
-  category Category @relation(fields: [categoryId], references: [id])
-  owner    Owner    @relation(fields: [ownerId], references: [id])
+model Category {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  slug        String    @unique
+  description String?
+  image       String?
+  products    Product[]
+  createdAt   DateTime  @default(now())
 }
 
 model Order {
-  id        Int      @id @default(autoincrement())
-  userId    Int
-  total     Float
-  status    String   @default("PENDING") // PENDING, COMPLETED, CANCELLED
-  createdAt DateTime @default(now())
-  items     OrderItem[]
-  user      User     @relation(fields: [userId], references: [id])
+  id              String      @id @default(cuid())
+  userId          String
+  user            User        @relation(fields: [userId], references: [id])
+  items           OrderItem[]
+  subtotal        Float
+  shipping        Float       @default(0)
+  tax             Float       @default(0)
+  total           Float
+  status          OrderStatus @default(PENDING)
+  paymentMethod   String
+  paymentStatus   PaymentStatus @default(PENDING)
+  razorpayOrderId String?
+  razorpayPaymentId String?
+  addressId       String
+  address         Address     @relation(fields: [addressId], references: [id])
+  notes           String?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  REFUNDED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
 }
 
 model OrderItem {
-  id        Int     @id @default(autoincrement())
-  orderId   Int
-  productId Int
-  quantity  Int
-  price     Float
+  id        String  @id @default(cuid())
+  orderId   String
   order     Order   @relation(fields: [orderId], references: [id])
+  productId String
   product   Product @relation(fields: [productId], references: [id])
+  qty       Int
+  price     Float
+  wholesalePrice Float @default(0)
 }
 
-model Cart {
-  id        Int @id @default(autoincrement())
-  userId    Int
-  productId Int
-  quantity  Int @default(1)
+model CartItem {
+  id        String  @id @default(cuid())
+  userId    String
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+  qty       Int     @default(1)
+  createdAt DateTime @default(now())
+  @@unique([userId, productId])
+}
 
-  user    User    @relation(fields: [userId], references: [id])
-  product Product @relation(fields: [productId], references: [id])
+model WishlistItem {
+  id        String  @id @default(cuid())
+  userId    String
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+  createdAt DateTime @default(now())
+  @@unique([userId, productId])
+}
+
+model Review {
+  id        String  @id @default(cuid())
+  userId    String
+  user      User    @relation(fields: [userId], references: [id])
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+  rating    Int
+  title     String?
+  body      String?
+  images    String[]
+  isVerified Boolean @default(false)
+  createdAt DateTime @default(now())
+  @@unique([userId, productId])
+}
+
+model FitnessProfile {
+  id              String  @id @default(cuid())
+  userId          String  @unique
+  user            User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  height          Float
+  weight          Float
+  age             Int
+  gender          String
+  goal            String
+  workoutDays     Int
+  activityLevel   String
+  dietType        String
+  bmi             Float?
+  lastUpdated     DateTime @default(now())
+  progressLogs    ProgressLog[]
+  workoutLogs     WorkoutLog[]
+  mealLogs        MealLog[]
+  supplementIntakes SupplementIntake[]
+}
+
+model ProgressLog {
+  id              String         @id @default(cuid())
+  fitnessProfileId String
+  fitnessProfile  FitnessProfile @relation(fields: [fitnessProfileId], references: [id], onDelete: Cascade)
+  weight          Float
+  bodyFat         Float?
+  muscleMass      Float?
+  notes           String?
+  loggedAt        DateTime       @default(now())
+}
+
+model WorkoutLog {
+  id              String         @id @default(cuid())
+  fitnessProfileId String
+  fitnessProfile  FitnessProfile @relation(fields: [fitnessProfileId], references: [id], onDelete: Cascade)
+  type            String         @default("CUSTOM") // AI or CUSTOM
+  focus           String?
+  exercises       Json?          // Array of logged exercises
+  loggedAt        DateTime       @default(now())
+}
+
+model MealLog {
+  id              String         @id @default(cuid())
+  fitnessProfileId String
+  fitnessProfile  FitnessProfile @relation(fields: [fitnessProfileId], references: [id], onDelete: Cascade)
+  mealType        String         // BREAKFAST, LUNCH, DINNER, SNACK
+  foodItems       String[]
+  calories        Int?
+  loggedAt        DateTime       @default(now())
+}
+
+model SupplementIntake {
+  id              String         @id @default(cuid())
+  fitnessProfileId String
+  fitnessProfile  FitnessProfile @relation(fields: [fitnessProfileId], references: [id], onDelete: Cascade)
+  supplementName  String
+  dosage          String?
+  takenAt         DateTime       @default(now())
+}
+
+model Owner {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
 }

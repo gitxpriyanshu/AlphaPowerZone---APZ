@@ -1,0 +1,12 @@
+import { Router } from 'express';
+import * as trackerController from '../controllers/tracker.controller.js';
+import { verifyJWT } from '../middlewares/auth.middleware.js';
+import { authRateLimiter } from '../middlewares/rateLimit.middleware.js';
+const router = Router();
+router.use(verifyJWT);
+router.use(authRateLimiter);
+router.post('/log', trackerController.logStats);
+router.get('/logs', trackerController.getLogs);
+router.post('/supplements/log', trackerController.logSupplement);
+router.get('/insights', trackerController.getInsights);
+export default router;

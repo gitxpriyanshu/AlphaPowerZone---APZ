@@ -1,33 +1,59 @@
 {
   "name": "apz",
   "version": "1.0.0",
+  "type": "module",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
-    "build": "npx prisma generate",
+    "start": "node dist/server.js",
+    "build": "tsc && npx prisma generate",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon server.js"
+    "dev": "tsx watch server.ts",
+    "seed": "prisma db seed"
+  },
+  "prisma": {
+    "seed": "ts-node src/config/env.ts && ts-node prisma/seed.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
   "devDependencies": {
-    "prisma": "^5.7.1"
+    "@types/bcrypt": "^6.0.0",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/morgan": "^1.9.10",
+    "@types/multer": "^2.1.0",
+    "@types/node": "^25.6.0",
+    "@types/nodemailer": "^8.0.0",
+    "prisma": "^5.22.0",
+    "ts-node-dev": "^2.0.0",
+    "tsx": "^4.21.0",
+    "typescript": "^6.0.3"
   },
   "dependencies": {
-    "@prisma/client": "^5.7.1",
+    "@prisma/client": "^5.22.0",
+    "@types/compression": "^1.8.1",
     "axios": "^1.14.0",
     "bcrypt": "^6.0.0",
+    "bcryptjs": "^3.0.3",
     "cloudinary": "^1.41.3",
+    "compression": "^1.8.1",
     "cookie-parser": "^1.4.7",
-    "cors": "^2.8.5",
-    "dotenv": "^17.2.3",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "express-rate-limit": "^8.4.1",
     "form-data": "^4.0.5",
+    "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.3",
-    "multer": "^2.0.2",
+    "morgan": "^1.10.1",
+    "multer": "^2.1.1",
     "multer-storage-cloudinary": "^4.0.0",
-    "nodemon": "^3.1.11"
+    "nodemailer": "^8.0.6",
+    "nodemon": "^3.1.11",
+    "razorpay": "^2.9.6",
+    "zod": "^4.3.6"
   }
 }

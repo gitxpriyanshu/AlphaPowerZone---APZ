@@ -1,0 +1,16 @@
+import { Router } from 'express';
+import * as wishlistController from '../controllers/wishlist.controller.js';
+import { verifyJWT } from '../middlewares/auth.middleware.js';
+import { authRateLimiter } from '../middlewares/rateLimit.middleware.js';
+
+const router = Router();
+
+router.use(verifyJWT);
+router.use(authRateLimiter);
+
+router.get('/', wishlistController.getWishlist);
+router.post('/:productId', wishlistController.toggleWishlist);
+router.delete('/:productId', wishlistController.removeFromWishlist);
+router.delete('/', wishlistController.clearWishlist);
+
+export default router;
