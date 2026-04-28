@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import Navbar from "../components/Navbar";
@@ -13,16 +13,19 @@ const OwnerLogin = () => {
   const navigate = useNavigate();
   const [error, setError] = useState("");
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    const res = await loginOwner(email, password, secretKey);
-
-    if (res.success) {
-      showToast("Owner Login successful!", "success");
-      navigate("/owner/dashboard");
-    } else {
-      setError(res.message);
+    try {
+      const res = await loginOwner(email, password, secretKey);
+      if (res.success) {
+        showToast("Owner Login successful!", "success");
+        navigate("/owner/dashboard");
+      } else {
+        setError(res.message || "Login failed");
+      }
+    } catch (err: any) {
+      setError(err.message || "An unexpected error occurred");
     }
   };
 

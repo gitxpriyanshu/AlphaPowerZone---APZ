@@ -1,9 +1,9 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion, HTMLMotionProps } from 'framer-motion';
 import { cn } from '@utils/cn';
 import Spinner from './Spinner';
 
-interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+interface ButtonProps extends HTMLMotionProps<'button'> {
   variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'error';
   size?: 'sm' | 'md' | 'lg' | 'xl';
   isLoading?: boolean;
@@ -75,7 +75,7 @@ const Button: React.FC<ButtonProps> = ({
           animate={{ opacity: 1 }} 
           className="flex items-center gap-2"
         >
-          <Spinner size="sm" color={variant === 'primary' ? 'white' : 'accent'} />
+          <Spinner size="sm" className={variant === 'primary' ? 'border-t-white' : 'border-t-brand-accent'} />
           <span>Processing...</span>
         </motion.div>
       ) : (

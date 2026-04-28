@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
 import Navbar from "../components/Navbar";
@@ -17,11 +17,11 @@ const Register = () => {
   const navigate = useNavigate();
   const [error, setError] = useState("");
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
@@ -29,7 +29,7 @@ const Register = () => {
       await api.post("/users/signup", formData);
       showToast("Registration successful! Please login.", "success");
       navigate('/');
-    } catch (err) {
+    } catch (err: any) {
       setError(err.response?.data?.message || "Registration failed");
     }
   };
@@ -96,7 +96,7 @@ const Register = () => {
               placeholder="Delivery Address (Optional)"
               onChange={handleChange}
               className="input-field h-20 resize-none"
-              rows="3"
+              rows={3}
             />
 
             <button type="submit" className="w-full btn btn-primary mt-4">

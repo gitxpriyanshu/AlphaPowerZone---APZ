@@ -22,7 +22,7 @@ export const useAuth = () => {
   return context;
 };
 
-export const AuthProvider = ({ children }) => {
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(() => {
     const storedUser = localStorage.getItem("user");
     return storedUser ? JSON.parse(storedUser) : null;
@@ -37,7 +37,7 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
-  const loginUser = async (email, password) => {
+  const loginUser = async (email: string, password: string) => {
     try {
       const res = await axiosInstance.post("/users/signin", { email, password });
       const userData = res.data.data.user; 
@@ -50,7 +50,7 @@ export const AuthProvider = ({ children }) => {
       setUser(userData);
       localStorage.setItem("user", JSON.stringify(userData));
       return { success: true };
-    } catch (err) {
+    } catch (err: any) {
       return {
         success: false,
         message: err.response?.data?.message || "Login failed",
@@ -58,7 +58,7 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const loginOwner = async (email, password, secretKey) => {
+  const loginOwner = async (email: string, password: string, secretKey: string) => {
     try {
       const res = await axiosInstance.post("/owners/signin", { email, password, secretKey });
       const ownerData = res.data.data.owner; 
@@ -70,7 +70,7 @@ export const AuthProvider = ({ children }) => {
       setUser(ownerData);
       localStorage.setItem("user", JSON.stringify(ownerData));
       return { success: true };
-    } catch (err) {
+    } catch (err: any) {
       return {
         success: false,
         message: err.response?.data?.message || "Login failed",
