@@ -15,18 +15,18 @@ export const createAddress = asyncHandler(async (req: Request, res: Response) =>
 
 export const updateAddress = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
-  const result = await addressService.update(req.user!.id!, id, req.body);
+  const result = await addressService.update(req.user!.id!, id as string, req.body);
   return res.status(200).json(new ApiResponse(200, result, 'Address updated successfully'));
 });
 
 export const deleteAddress = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
-  await addressService.delete(req.user!.id!, id);
+  await addressService.delete(req.user!.id!, id as string);
   return res.status(200).json(new ApiResponse(200, null, 'Address deleted successfully'));
 });
 
 export const setDefaultAddress = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
-  await addressService.setDefault(req.user!.id!, id);
+  await addressService.setDefault(req.user!.id!, id as string);
   return res.status(200).json(new ApiResponse(200, null, 'Default address updated'));
 });

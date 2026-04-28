@@ -1,6 +1,7 @@
 import { orderService } from '../services/order.service.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { ApiResponse } from '../utils/ApiResponse.js';
+import { ApiError } from '../utils/ApiError.js';
 export const getMyOrders = asyncHandler(async (req, res) => {
     const result = await orderService.getUserOrders(req.user.id);
     return res.status(200).json(new ApiResponse(200, result, 'Orders fetched successfully'));

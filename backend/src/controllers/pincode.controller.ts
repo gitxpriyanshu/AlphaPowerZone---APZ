@@ -5,6 +5,6 @@ import { ApiResponse } from '../utils/ApiResponse.js';
 
 export const lookupPincode = asyncHandler(async (req: Request, res: Response) => {
   const { pincode } = req.params;
-  const result = await pincodeService.lookup(pincode);
+  const result = await pincodeService.lookup(pincode as string);
   return res.status(200).json(new ApiResponse(200, result, result.isValid ? 'PIN code details fetched' : 'Invalid PIN code'));
 });

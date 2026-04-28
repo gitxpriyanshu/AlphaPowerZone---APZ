@@ -12,6 +12,7 @@ const envSchema = z.object({
     CLOUDINARY_API_SECRET: z.string().optional(),
     RAZORPAY_KEY_ID: z.string().optional(),
     RAZORPAY_KEY_SECRET: z.string().optional(),
+    RAZORPAY_WEBHOOK_SECRET: z.string().optional(),
 });
 const _env = envSchema.safeParse(process.env);
 if (!_env.success) {

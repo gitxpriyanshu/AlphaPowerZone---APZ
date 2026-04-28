@@ -22,6 +22,7 @@ export const createOrder = asyncHandler(async (req, res) => {
             productId: product.id,
             qty: item.qty,
             price: product.price,
+            wholesalePrice: product.wholesalePrice,
             size: item.size,
         });
     }
@@ -69,7 +70,6 @@ export const verifyPayment = asyncHandler(async (req, res) => {
             status: 'CONFIRMED',
             paymentMethod: 'ONLINE', // Update method if they switched from COD
             razorpayPaymentId,
-            razorpaySignature,
         },
         include: { items: true }
     });
@@ -101,6 +101,7 @@ export const createCODOrder = asyncHandler(async (req, res) => {
             productId: product.id,
             qty: item.qty,
             price: product.price,
+            wholesalePrice: product.wholesalePrice,
             size: item.size,
         });
     }

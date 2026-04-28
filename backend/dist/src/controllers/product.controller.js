@@ -16,7 +16,7 @@ export const getProducts = asyncHandler(async (req, res) => {
 export const getProductBySlug = asyncHandler(async (req, res) => {
     const { slug } = req.params;
     const product = await prisma.product.findUnique({
-        where: { slug },
+        where: { slug: slug },
         include: {
             category: true,
             reviews: {
@@ -54,9 +54,31 @@ export const createProduct = asyncHandler(async (req, res) => {
             categoryId,
             images,
             sku,
+            wholesalePrice: parseFloat(req.body.wholesalePrice || '0'),
         }
     });
     return res.status(201).json(new ApiResponse(201, product, 'Product created successfully'));
+});
+export const updateProduct = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const { name, description, mrp, discount, stock, categoryId, images, sku, wholesalePrice } = req.body;
+    const sellingPrice = parseFloat(mrp) - (parseFloat(mrp) * (parseInt(discount) / 100));
+    const product = await prisma.product.update({
+        where: { id: id },
+        data: {
+            name,
+            description,
+            price: sellingPrice,
+            comparePrice: parseFloat(mrp),
+            discount: parseInt(discount),
+            stock: parseInt(stock),
+            categoryId,
+            images,
+            sku,
+            wholesalePrice: parseFloat(wholesalePrice || '0'),
+        }
+    });
+    return res.status(200).json(new ApiResponse(200, product, 'Product updated successfully'));
 });
 export const createCategory = asyncHandler(async (req, res) => {
     const { name, description, image } = req.body;

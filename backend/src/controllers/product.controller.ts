@@ -23,7 +23,7 @@ export const getProductBySlug = asyncHandler(async (req: Request, res: Response)
   const { slug } = req.params;
 
   const product = await prisma.product.findUnique({
-    where: { slug },
+    where: { slug: slug as string },
     include: {
       category: true,
       reviews: {
@@ -88,7 +88,7 @@ export const updateProduct = asyncHandler(async (req: Request, res: Response) =>
   const sellingPrice = parseFloat(mrp) - (parseFloat(mrp) * (parseInt(discount) / 100));
 
   const product = await prisma.product.update({
-    where: { id },
+    where: { id: id as string },
     data: {
       name,
       description,

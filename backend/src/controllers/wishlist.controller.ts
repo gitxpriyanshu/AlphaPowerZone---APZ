@@ -10,14 +10,14 @@ export const getWishlist = asyncHandler(async (req: Request, res: Response) => {
 
 export const toggleWishlist = asyncHandler(async (req: Request, res: Response) => {
   const { productId } = req.params;
-  const result = await wishlistService.toggleWishlist(req.user!.id!, productId);
+  const result = await wishlistService.toggleWishlist(req.user!.id!, productId as string);
   const message = result.added ? 'Added to wishlist' : 'Removed from wishlist';
   return res.status(200).json(new ApiResponse(200, result, message));
 });
 
 export const removeFromWishlist = asyncHandler(async (req: Request, res: Response) => {
   const { productId } = req.params;
-  await wishlistService.removeItem(req.user!.id!, productId);
+  await wishlistService.removeItem(req.user!.id!, productId as string);
   return res.status(200).json(new ApiResponse(200, null, 'Item removed from wishlist'));
 });
 

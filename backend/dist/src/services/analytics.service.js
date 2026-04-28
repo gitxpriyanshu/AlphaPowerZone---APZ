@@ -6,7 +6,7 @@ export const analyticsService = {
     getOverview: async () => {
         const now = new Date();
         const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-        const [totalRevenue, totalOrders, totalUsers, totalProducts, revenueThisMonth, ordersThisMonth, newUsersThisMonth, lowStockProducts,] = await Promise.all([
+        const [totalRevenue, totalOrders, totalUsers, totalProducts, revenueThisMonth, ordersThisMonth, newUsersThisMonth, lowStockProducts, deliveredOrders,] = await Promise.all([
             prisma.order.aggregate({ _sum: { total: true }, where: { paymentStatus: 'PAID' } }),
             prisma.order.count(),
             prisma.user.count(),
@@ -21,12 +21,23 @@ export const analyticsService = {
                 where: { stock: { lte: 5 } },
                 select: { id: true, name: true, stock: true },
             }),
+            prisma.order.findMany({
+                where: { status: 'DELIVERED' },
+                include: { items: true }
+            }),
         ]);
+        let totalProfit = 0;
+        deliveredOrders.forEach(order => {
+            order.items.forEach(item => {
+                totalProfit += (item.price - item.wholesalePrice) * item.qty;
+            });
+        });
         return {
             totalRevenue: totalRevenue._sum.total || 0,
             totalOrders,
             totalUsers,
             totalProducts,
+            totalProfit,
             revenueThisMonth: revenueThisMonth._sum.total || 0,
             ordersThisMonth,
             newUsersThisMonth,
@@ -110,8 +121,22 @@ export const analyticsService = {
     getAllOrders: async () => {
         return await prisma.order.findMany({
             include: {
-                user: { select: { name: true, email: true } },
-                items: true
+                user: {
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true,
+                        phone: true,
+                        createdAt: true,
+                        _count: { select: { orders: true } }
+                    }
+                },
+                items: {
+                    include: {
+                        product: { select: { name: true, images: true, slug: true } }
+                    }
+                },
+                address: true
             },
             orderBy: { createdAt: 'desc' }
         });
