@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Helmet } from 'react-helmet-async';
 import { 
@@ -15,6 +15,9 @@ import { cn } from '@utils/cn';
 import Button from '@components/ui/Button';
 import Input from '@components/ui/Input';
 import Badge from '@components/ui/Badge';
+import { useAuthStore } from '@store/authStore';
+import { generateFitnessReport, FitnessReportData } from '@utils/generateFitnessReport';
+import toast from 'react-hot-toast';
 
 const FitnessAI: React.FC = () => {
   const { 
@@ -23,6 +26,59 @@ const FitnessAI: React.FC = () => {
   } = useFitnessAnalysis();
 
   const [activeDay, setActiveDay] = useState('Monday');
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const { user } = useAuthStore();
+
+  const handleDownloadPDF = useCallback(async () => {
+    if (!results) return;
+    setIsGeneratingPDF(true);
+    try {
+      const reportData: FitnessReportData = {
+        userName: user?.name || 'Athlete',
+        generatedAt: new Date(),
+        userInput: {
+          height_cm: formData.height_cm,
+          weight_kg: formData.weight_kg,
+          age: formData.age,
+          gender: formData.gender,
+          goal: formData.goal,
+          workout_days_per_week: formData.workout_days_per_week,
+          diet_type: formData.diet_type,
+          fitness_experience: formData.fitness_experience,
+        },
+        metrics: {
+          bmi: results.metrics.bmi,
+          bmi_category: results.metrics.bmi_category,
+          calories_target: results.metrics.calories_target,
+          protein_g: results.metrics.protein_g,
+          carbs_g: results.metrics.carbs_g,
+          fat_g: results.metrics.fat_g,
+          ideal_weight_range: results.metrics.ideal_weight_range,
+          bmr: results.metrics.bmr,
+          tdee: results.metrics.tdee,
+        },
+        plan: {
+          workout_plan: {
+            weekly_schedule: results.plan.workout_plan?.weekly_schedule || [],
+          },
+          diet_plan: {
+            daily_meals: results.plan.diet_plan?.daily_meals || [],
+            foods_to_eat: results.plan.diet_plan?.foods_to_eat || [],
+            foods_to_avoid: results.plan.diet_plan?.foods_to_avoid || [],
+          },
+          supplements: results.plan.supplements || [],
+          lifestyle_tips: results.plan.lifestyle_tips || [],
+        },
+      };
+      generateFitnessReport(reportData);
+      toast.success('PDF downloaded successfully!');
+    } catch (error) {
+      console.error('PDF generation failed:', error);
+      toast.error('Failed to generate PDF. Please try again.');
+    } finally {
+      setIsGeneratingPDF(false);
+    }
+  }, [results, formData, user]);
 
   // BMI Calculation for Step 1 Live Preview
   const bmi = useMemo(() => {
@@ -391,15 +447,25 @@ const FitnessAI: React.FC = () => {
               <label className="text-xs font-black uppercase tracking-widest text-brand-text-muted">Equipment Available</label>
               <div className="flex flex-wrap gap-2">
                 {equipments.map((eq) => {
-                  const isSelected = formData.available_equipment.includes(eq.toLowerCase().replace(' ', '_'));
+                  const val = eq.toLowerCase().replace(' ', '_');
+                  const isSelected = formData.available_equipment.includes(val);
                   return (
                     <button
                       key={eq}
                       onClick={() => {
-                        const val = eq.toLowerCase().replace(' ', '_');
-                        const newEq = isSelected 
-                          ? formData.available_equipment.filter(e => e !== val)
-                          : [...formData.available_equipment, val];
+                        let newEq: string[] = [];
+                        if (val === 'full_gym' || val === 'none') {
+                          newEq = isSelected ? [] : [val];
+                        } else {
+                          if (isSelected) {
+                            newEq = formData.available_equipment.filter(e => e !== val);
+                          } else {
+                            newEq = [
+                              ...formData.available_equipment.filter(e => e !== 'full_gym' && e !== 'none'),
+                              val
+                            ];
+                          }
+                        }
                         updateFormData({ available_equipment: newEq });
                       }}
                       className={cn(
@@ -482,8 +548,9 @@ const FitnessAI: React.FC = () => {
               </h1>
             </motion.div>
             <div className="flex gap-4">
-              <Button variant="outline" size="sm" onClick={() => window.print()}>
-                <Download className="mr-2" size={16} /> PDF
+              <Button variant="outline" size="sm" onClick={handleDownloadPDF} disabled={isGeneratingPDF}>
+                <Download className={`mr-2 ${isGeneratingPDF ? 'animate-spin' : ''}`} size={16} />
+                {isGeneratingPDF ? 'Generating...' : 'PDF'}
               </Button>
               <Button variant="outline" size="sm" onClick={reset}>
                 <RefreshCw className="mr-2" size={16} /> Recalculate
@@ -572,17 +639,30 @@ const FitnessAI: React.FC = () => {
                   <div className="h-full w-[25%] bg-red-500" />
                 </div>
                 {/* Indicator Marker */}
-                <motion.div 
-                  initial={{ left: 0 }}
-                  animate={{ left: `${Math.min(Math.max((results.metrics.bmi - 15) / 25 * 100, 5), 95)}%` }}
-                  transition={{ type: 'spring', damping: 15 }}
-                  className="absolute top-4 -translate-x-1/2 flex flex-col items-center gap-2"
-                >
-                  <div className="px-3 py-1 bg-brand-text-primary text-white text-xs font-black font-mono rounded-full">
-                    {results.metrics.bmi}
-                  </div>
-                  <div className="w-1 h-8 bg-brand-text-primary" />
-                </motion.div>
+                {(() => {
+                  const bmi = results.metrics.bmi;
+                  const pct = bmi < 18.5 
+                    ? 5 + ((bmi - 15) / (18.5 - 15)) * 20 
+                    : bmi < 25 
+                      ? 25 + ((bmi - 18.5) / (25 - 18.5)) * 25 
+                      : bmi < 30 
+                        ? 50 + ((bmi - 25) / (30 - 25)) * 25 
+                        : 75 + ((bmi - 30) / 10) * 20;
+                  const safePct = Math.min(Math.max(pct, 5), 95);
+                  return (
+                    <motion.div 
+                      initial={{ left: 0 }}
+                      animate={{ left: `${safePct}%` }}
+                      transition={{ type: 'spring', damping: 15 }}
+                      className="absolute top-4 -translate-x-1/2 flex flex-col items-center gap-2"
+                    >
+                      <div className="px-3 py-1 bg-brand-text-primary text-white text-xs font-black font-mono rounded-full">
+                        {results.metrics.bmi}
+                      </div>
+                      <div className="w-1 h-8 bg-brand-text-primary" />
+                    </motion.div>
+                  );
+                })()}
                 {/* Labels */}
                 <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-brand-text-muted mt-4">
                   <span>Under</span>

@@ -17,6 +17,7 @@ export const analyzeFitness = asyncHandler(async (req, res) => {
                 'X-API-Key': apiKey,
                 'Content-Type': 'application/json',
             },
+            timeout: 90000, // 90s — AI service may retry multiple models with rate-limit waits
         });
         return res
             .status(200)

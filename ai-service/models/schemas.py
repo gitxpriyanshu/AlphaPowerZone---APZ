@@ -32,47 +32,47 @@ class HealthMetrics(BaseModel):
 
 class Exercise(BaseModel):
     name: str
-    sets: int
-    reps: str
-    rest: str
-    instructions: str
+    sets: int = 3
+    reps: str = "10-12"
+    rest: str = "60 sec"
+    instructions: str = ""
 
 class DayPlan(BaseModel):
     day: str
-    focus: str
-    exercises: List[Exercise]
+    focus: str = "Rest Day"
+    exercises: List[Exercise] = []
 
 class WorkoutPlan(BaseModel):
-    overview: str
-    weekly_schedule: List[DayPlan]
-    progression_tips: List[str]
+    overview: str = ""
+    weekly_schedule: List[DayPlan] = []
+    progression_tips: List[str] = []
 
 class Meal(BaseModel):
     meal: str
-    time: str
-    options: List[str]
-    calories: int
+    time: str = ""
+    options: List[str] = []
+    calories: int = 0
 
 class DietPlan(BaseModel):
-    overview: str
-    daily_meals: List[Meal]
-    foods_to_eat: List[str]
-    foods_to_avoid: List[str]
-    hydration_tip: str
+    overview: str = ""
+    daily_meals: List[Meal] = []
+    foods_to_eat: List[str] = []
+    foods_to_avoid: List[str] = []
+    hydration_tip: str = ""
 
 class Supplement(BaseModel):
     name: str
-    purpose: str
-    dosage: str
-    timing: str
-    priority: str
+    purpose: str = ""
+    dosage: str = ""
+    timing: str = ""
+    priority: str = "recommended"
 
 class FitnessPlan(BaseModel):
-    workout_plan: WorkoutPlan
-    diet_plan: DietPlan
-    supplements: List[Supplement]
-    lifestyle_tips: List[str]
-    warnings: List[str]
+    workout_plan: Optional[WorkoutPlan] = WorkoutPlan()
+    diet_plan: Optional[DietPlan] = DietPlan()
+    supplements: List[Supplement] = []
+    lifestyle_tips: List[str] = []
+    warnings: List[str] = []
 
 class AnalysisResponse(BaseModel):
     metrics: HealthMetrics
