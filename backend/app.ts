@@ -12,6 +12,9 @@ import rootRouter from './src/routes/index.js';
 
 const app = express();
 
+// Trust reverse proxy (Render's load balancer) to detect correct client IP for rate limiting
+app.set('trust proxy', 1);
+
 // Rate Limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes

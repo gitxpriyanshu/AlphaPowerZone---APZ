@@ -33,6 +33,7 @@ export const useFitnessAnalysis = () => {
   const prevStep = () => setStep(s => Math.max(s - 1, 1));
 
   const runAnalysis = async () => {
+    if (isLoading) return;
     setIsLoading(true);
     
     const messages = [

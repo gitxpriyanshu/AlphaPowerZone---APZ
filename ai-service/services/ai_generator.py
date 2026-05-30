@@ -38,10 +38,10 @@ GROQ_MODELS = [
 ]
 
 OPENROUTER_MODELS = [
-    settings.OPENROUTER_MODEL,       # deepseek/deepseek-v4-flash:free
-    "google/gemma-4-31b-it:free",
+    settings.OPENROUTER_MODEL,
     "meta-llama/llama-3.3-70b-instruct:free",
-    "meta-llama/llama-3.2-3b-instruct:free",
+    "deepseek/deepseek-r1-distill-llama-70b:free",
+    "google/gemma-2-9b-it:free",
     "openrouter/free",
 ]
 
@@ -129,6 +129,11 @@ async def _try_provider(
 
             except RateLimitError as e:
                 last_error = e
+
+                # Groq-specific: immediately fail over to OpenRouter to prevent gateway timeouts
+                if provider_name == "Groq":
+                    print("[AI/Groq] ❌ Rate limit hit on Groq. Failing over to OpenRouter immediately.")
+                    raise e
 
                 # OpenRouter-specific: daily quota exhaustion
                 if provider_name == "OpenRouter" and _is_daily_quota_exhausted(e):

@@ -1,4 +1,8 @@
 {
   "typescript.tsdk": "frontend/node_modules/typescript/lib",
-  "typescript.enablePromptUseWorkspaceTsdk": true
+  "typescript.enablePromptUseWorkspaceTsdk": true,
+  "python.defaultInterpreterPath": "${workspaceFolder}/ai-service/venv/bin/python",
+  "python.analysis.extraPaths": [
+    "${workspaceFolder}/ai-service"
+  ]
 }

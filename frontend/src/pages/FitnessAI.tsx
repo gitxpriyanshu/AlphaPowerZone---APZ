@@ -516,9 +516,13 @@ const FitnessAI: React.FC = () => {
               </p>
             </div>
 
-            <Button size="xl" fullWidth onClick={runAnalysis} className="h-16 text-lg">
-              Generate My Elite Blueprint
-              <Zap className="ml-3 fill-white" size={20} />
+            <Button size="xl" fullWidth onClick={runAnalysis} disabled={isLoading} className="h-16 text-lg">
+              {isLoading ? 'Generating Elite Blueprint...' : 'Generate My Elite Blueprint'}
+              {isLoading ? (
+                <RefreshCw className="ml-3 animate-spin" size={20} />
+              ) : (
+                <Zap className="ml-3 fill-white" size={20} />
+              )}
             </Button>
           </motion.div>
         );
