@@ -34,7 +34,8 @@ app.use(cors({
 app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" }
 }));
-app.use(limiter);
+// Global rate limiting removed to prevent false 429s behind Render proxy.
+// app.use(limiter);
 app.disable('x-powered-by');
 
 // Compression
