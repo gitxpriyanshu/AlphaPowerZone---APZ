@@ -13,12 +13,12 @@ import rootRouter from './src/routes/index.js';
 const app = express();
 
 // Trust reverse proxy (Render's load balancer) to detect correct client IP for rate limiting
-app.set('trust proxy', 1);
+app.set('trust proxy', true); // Set to true to trust all proxy hops on Render
 
 // Rate Limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per windowMs
+  max: 5000, // Increased limit from 100 to 5000 to avoid false 429 errors for legitimate users navigating the site
   message: 'Too many requests from this IP, please try again after 15 minutes',
   standardHeaders: true,
   legacyHeaders: false,
