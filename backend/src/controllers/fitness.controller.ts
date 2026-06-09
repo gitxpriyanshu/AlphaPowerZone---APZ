@@ -15,17 +15,38 @@ export const analyzeFitness = asyncHandler(async (req: Request, res: Response) =
   const apiKey = process.env.AI_SERVICE_API_KEY;
 
   try {
-    const response = await axios.post(
-      `${pythonServiceUrl}/fitness/analyze`,
-      profileData,
-      {
-        headers: {
-          'X-API-Key': apiKey,
-          'Content-Type': 'application/json',
-        },
-        timeout: 90000, // 90s — AI service may retry multiple models with rate-limit waits
+    let response;
+    let attempts = 0;
+    const maxAttempts = 3;
+
+    while (attempts < maxAttempts) {
+      try {
+        response = await axios.post(
+          `${pythonServiceUrl}/fitness/analyze`,
+          profileData,
+          {
+            headers: {
+              'X-API-Key': apiKey,
+              'Content-Type': 'application/json',
+            },
+            timeout: 90000, // 90s — AI service may retry multiple models with rate-limit waits
+          }
+        );
+        break; // Success, exit retry loop
+      } catch (err: any) {
+        attempts++;
+        if (err.response?.status === 429 && attempts < maxAttempts) {
+          console.warn(`[Fitness Controller] Render proxy 429 hit. Retrying attempt ${attempts}...`);
+          await new Promise(res => setTimeout(res, 3000 * attempts)); // Exponential backoff
+        } else {
+          throw err; // Not a 429 or max attempts reached
+        }
       }
-    );
+    }
+
+    if (!response) {
+      throw new ApiError(500, 'Failed to get response from AI Service');
+    }
 
     return res
       .status(200)
