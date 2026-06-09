@@ -55,9 +55,38 @@ export const analyzeFitness = asyncHandler(async (req: Request, res: Response) =
     console.error('AI Service Error:', error.response?.data || error.message);
     throw new ApiError(
       error.response?.status || 500,
-      error.response?.data?.detail || 'Error communicating with AI Service'
+      error.response?.data?.detail || `Error communicating with AI Service: ${error.message}`
     );
   }
+});
+
+/**
+ * @desc    Debug internal Render network
+ * @route   GET /api/v1/fitness/debug
+ * @access  Public
+ */
+export const debugNetwork = asyncHandler(async (req: Request, res: Response) => {
+  const hosts = [
+    'http://apz-ai-service:8000',
+    'http://apz-ai-service:10000',
+    'http://srv-d87bcd7avr4c73caamfg:8000',
+    'http://srv-d87bcd7avr4c73caamfg:10000',
+    'https://apz-ai-service.onrender.com'
+  ];
+  const results: any = {};
+  for (const host of hosts) {
+    try {
+      const response = await axios.get(`${host}/`, { timeout: 5000 });
+      results[host] = { status: response.status, data: response.data };
+    } catch (e: any) {
+      results[host] = { error: e.message, status: e.response?.status, data: e.response?.data };
+    }
+  }
+  
+  res.status(200).json({
+    current_env_url: process.env.PYTHON_AI_SERVICE_URL,
+    results
+  });
 });
 
 /**
