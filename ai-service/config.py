@@ -4,8 +4,9 @@ from functools import lru_cache
 class Settings(BaseSettings):
     OPENROUTER_API_KEY: str
     AI_SERVICE_API_KEY: str
-    OPENROUTER_MODEL: str = "meta-llama/llama-3.3-70b-instruct:free"
+    OPENROUTER_MODEL: str = "deepseek/deepseek-v3"
     GROQ_API_KEY: str | None = None
+    GROQ_MODEL: str = "llama-3.1-8b-instant"
     PORT: int = 8000
     
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
@@ -13,4 +14,3 @@ class Settings(BaseSettings):
 @lru_cache()
 def get_settings():
     return Settings()
-

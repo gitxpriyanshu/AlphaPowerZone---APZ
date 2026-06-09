@@ -60,7 +60,14 @@ export const useFitnessAnalysis = () => {
       toast.success('Your Elite Blueprint is Ready!');
     } catch (error: any) {
       clearInterval(msgInterval);
-      toast.error(error.response?.data?.message || 'Analysis failed. Please try again.');
+      const status = error.response?.status;
+      if (status === 429 || status === 503) {
+        toast.error('Our AI is processing many requests right now. Please try again in 60 seconds.');
+      } else if (status === 500) {
+        toast.error('Something went wrong. Please try again.');
+      } else {
+        toast.error('Could not generate your blueprint. Please try again in a moment.');
+      }
     } finally {
       setIsLoading(false);
     }
