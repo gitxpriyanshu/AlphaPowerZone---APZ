@@ -146,22 +146,29 @@ async def _call_single_provider(
     model: str,
     prompt: str,
     provider_name: str,
+    use_json_format: bool = False,
 ) -> dict:
     """Make one API call to a single model. Returns parsed dict or raises."""
     print(f"[AI/{provider_name}] Calling {model}...")
-    completion = await client.chat.completions.create(
-        model=model,
-        messages=[
+
+    completion_kwargs = {
+        "model": model,
+        "messages": [
             {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user", "content": prompt},
         ],
-        temperature=0.7,
-        max_tokens=4000,
-        top_p=1,
-        stream=False,
-        response_format={"type": "json_object"},
-        timeout=25.0,
-    )
+        "temperature": 0.7,
+        "max_tokens": 4000,
+        "top_p": 1,
+        "stream": False,
+        "timeout": 25.0,
+    }
+    # Only Groq reliably supports response_format=json_object.
+    # OpenRouter's deepseek-v3 does NOT support this parameter and will error.
+    if use_json_format:
+        completion_kwargs["response_format"] = {"type": "json_object"}
+
+    completion = await client.chat.completions.create(**completion_kwargs)
     content = completion.choices[0].message.content
     if not content:
         raise ValueError(f"Empty response from {provider_name}/{model}")
@@ -175,13 +182,13 @@ async def _call_single_provider(
 
 
 async def _call_groq(prompt: str) -> dict:
-    """Call Groq with the configured model."""
-    return await _call_single_provider(groq_client, GROQ_MODEL, prompt, "Groq")
+    """Call Groq with the configured model. Groq supports json_object format."""
+    return await _call_single_provider(groq_client, GROQ_MODEL, prompt, "Groq", use_json_format=True)
 
 
 async def _call_openrouter(prompt: str) -> dict:
-    """Call OpenRouter with the configured model."""
-    return await _call_single_provider(openrouter_client, OPENROUTER_MODEL, prompt, "OpenRouter")
+    """Call OpenRouter with the configured model. Does NOT use json_object format."""
+    return await _call_single_provider(openrouter_client, OPENROUTER_MODEL, prompt, "OpenRouter", use_json_format=False)
 
 
 # ══════════════════════════════════════════════════════════════
@@ -230,7 +237,15 @@ async def generate_fitness_plan(user_data, metrics) -> dict:
                 openrouter_minute_requests.pop()
             print(f"[AI] OpenRouter 429: {e}")
         except Exception as e:
-            print(f"[AI] OpenRouter failed: {e}")
+            err_str = str(e)
+            # 402 = OpenRouter account has no credits loaded
+            if "402" in err_str or "credit" in err_str.lower() or "payment" in err_str.lower():
+                print("[AI] OpenRouter has no credits. Add credits at openrouter.ai/settings/credits")
+                raise HTTPException(
+                    status_code=503,
+                    detail="AI service configuration issue. Please contact support."
+                )
+            print(f"[AI] OpenRouter failed: {err_str}")
             raise HTTPException(
                 status_code=503,
                 detail="AI service encountered an error. Please try again in a moment."
